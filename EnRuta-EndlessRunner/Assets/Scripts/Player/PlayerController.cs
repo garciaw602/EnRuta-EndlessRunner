@@ -1,15 +1,20 @@
 using UnityEngine;
 
-// Aseguramos que el script solo pueda existir si tiene un Rigidbody y un CapsuleCollider
+// Asegura que el script solo pueda existir si tiene un Rigidbody y un CapsuleCollider
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(CapsuleCollider))]
 public class PlayerController : MonoBehaviour
 {
-    // --- COMPONENTES ---
+    // --- COMPONENTES Y REFERENCIAS ---
 
     [Header("Componentes de Animación")]
     [Tooltip("Arrastra el componente Animator de tu modelo 3D aquí.")]
-    public Animator playerAnimator; // ¡Importante: Asignar en el Inspector!
+    public Animator playerAnimator;
+
+    // Conexión con el sistema de generación de niveles
+    [Header("Generador de Pista")]
+    [Tooltip("Arrastra el script TrackGenerator aquí para la generación modular.")]
+    public TrackGenerator generator; // <<-- NUEVA REFERENCIA PARA GENERACIÓN
 
     private Rigidbody rb;
     private CapsuleCollider capsuleCollider;
@@ -17,13 +22,8 @@ public class PlayerController : MonoBehaviour
     // --- VARIABLES DE MOVIMIENTO Y CARRIL ---
 
     [Header("Velocidad y Carriles")]
-    [Tooltip("Velocidad constante de avance del jugador (eje Z).")]
     public float forwardSpeed = 10f;
-
-    [Tooltip("Velocidad de movimiento lateral al cambiar de carril (suavizado/Lerp).")]
     public float laneChangeSpeed = 15f;
-
-    [Tooltip("Distancia lateral entre cada carril.")]
     public float laneDistance = 3f;
 
     // Control de Carriles: 0=Izquierda, 1=Centro, 2=Derecha.
@@ -33,20 +33,15 @@ public class PlayerController : MonoBehaviour
     // --- VARIABLES DE SALTO Y DESLIZAMIENTO ---
 
     [Header("Salto y Deslizamiento")]
-    [Tooltip("Fuerza vertical inicial aplicada al saltar.")]
     public float jumpForce = 8f;
-
-    [Tooltip("Multiplicador de gravedad para una caída más rápida (efecto arcade).")]
     public float gravityModifier = 1.5f;
-
-    [Tooltip("Duración, en segundos, del estado de deslizamiento.")]
     public float slideDuration = 1.0f;
 
     // FSM: Banderas de estado
     private bool isJumping = false;
     private bool isSliding = false;
 
-    // Valores originales del Collider para el deslizamiento
+    // Valores originales del Collider
     private float originalColliderHeight;
     private Vector3 originalColliderCenter;
 
@@ -68,26 +63,33 @@ public class PlayerController : MonoBehaviour
         // Aplicar gravedad personalizada.
         Physics.gravity *= gravityModifier;
 
-        // Iniciar la animación de correr si el Animator está asignado.
+        // Iniciar la animación de correr.
         if (playerAnimator != null)
         {
-            // Usamos "IsRunning" (Bool) para indicar que el estado base es correr.
             playerAnimator.SetBool("IsRunning", true);
         }
     }
 
 
-    // Update se llama en cada frame. Ideal para Input.
+    // Update se llama en cada frame. 
     void Update()
     {
-        HandleInput();
+        // Solo procesamos el Input si el script está habilitado (no muerto).
+        if (this.enabled)
+        {
+            HandleInput();
+        }
     }
 
 
     // FixedUpdate se llama a intervalos fijos. Ideal para Físicas (Rigidbody).
     void FixedUpdate()
     {
-        MovePlayer();
+        // Solo movemos el Player si el script está habilitado (no muerto).
+        if (this.enabled)
+        {
+            MovePlayer();
+        }
     }
 
 
@@ -95,7 +97,7 @@ public class PlayerController : MonoBehaviour
 
     private void HandleInput()
     {
-        // 1. Lógica de Cambio de Carril (A/D o Flechas Izquierda/Derecha)
+        // 1. Lógica de Cambio de Carril
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
             if (currentLane > 0) currentLane--;
@@ -107,13 +109,11 @@ public class PlayerController : MonoBehaviour
         }
 
         // 2. Salto (FSM: Transición a Jumping)
-        // Solo si no está ya saltando o deslizándose.
         if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow)) && !isJumping && !isSliding)
         {
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isJumping = true;
 
-            // >> CONTROL DE ANIMACIÓN: Activa el Trigger para pasar a la animación de Salto.
             if (playerAnimator != null)
             {
                 playerAnimator.SetTrigger("Jump");
@@ -126,7 +126,6 @@ public class PlayerController : MonoBehaviour
             StartSliding();
         }
 
-        // Calcular la posición X objetivo final para la transición de carril.
         targetXPosition = (currentLane - 1) * laneDistance;
     }
 
@@ -135,17 +134,14 @@ public class PlayerController : MonoBehaviour
 
     private void MovePlayer()
     {
-        // 1. Movimiento Constante hacia Adelante (Eje Z)
+        // Avance constante (Z)
         Vector3 forwardMovement = Vector3.forward * forwardSpeed * Time.fixedDeltaTime;
 
-        // 2. Movimiento Lateral (Transición Suave con Lerp)
-        // newX se mueve suavemente desde la posición actual hasta el carril objetivo.
+        // Movimiento Lateral (X)
         float newX = Mathf.Lerp(rb.position.x, targetXPosition, Time.fixedDeltaTime * laneChangeSpeed);
 
-        // Vector final: nueva posición X (suave) y avance en Z (constante).
         Vector3 finalPosition = new Vector3(newX, rb.position.y, rb.position.z + forwardMovement.z);
 
-        // Mueve el Rigidbody (preferido para movimiento cinemático).
         rb.MovePosition(finalPosition);
     }
 
@@ -156,20 +152,16 @@ public class PlayerController : MonoBehaviour
     {
         isSliding = true;
 
-        // >> CONTROL DE ANIMACIÓN: Activa el Trigger para pasar a la animación de Deslizamiento.
         if (playerAnimator != null)
         {
             playerAnimator.SetTrigger("Slide");
         }
 
-        // 1. Ajustar el Capsule Collider (reducir altura a la mitad).
+        // Ajuste de Collider para el Deslizamiento
         capsuleCollider.height /= 2f;
-
-        // 2. Ajustar el centro del Collider (moverlo hacia abajo).
         Vector3 newCenter = new Vector3(originalColliderCenter.x, originalColliderCenter.y / 2f, originalColliderCenter.z);
         capsuleCollider.center = newCenter;
 
-        // Programar la función StopSliding para que se ejecute al final de la duración.
         Invoke("StopSliding", slideDuration);
     }
 
@@ -177,20 +169,72 @@ public class PlayerController : MonoBehaviour
     {
         isSliding = false;
 
-        // Reestablecer la altura y el centro del Collider a sus valores originales.
+        // Reestablecer Collider a sus valores originales
         capsuleCollider.height = originalColliderHeight;
         capsuleCollider.center = originalColliderCenter;
     }
 
-
-    // --- DETECCIÓN DE COLISIÓN (Para Finalizar el Salto) ---
+    // --- DETECCIÓN DE COLISIÓN Y TRIGGERS ---
 
     private void OnCollisionEnter(Collision collision)
     {
-        // Si estábamos saltando y colisionamos, asumimos que aterrizamos en el suelo.
+        // 1. Lógica para finalizar el Salto (aterrizaje)
         if (isJumping)
         {
-            isJumping = false; // Vuelve al estado Running
+            isJumping = false;
         }
+
+        // 2. Lógica de Muerte: si choca con un obstáculo
+        // MUERE siempre que choque con el "Obstaculo"
+        if (collision.gameObject.CompareTag("Obstaculo"))
+        {
+            // Cancelamos el deslizamiento pendiente si choca durante el slide
+            CancelInvoke("StopSliding");
+            Die();
+        }
+    }
+
+    // **NUEVO** Método para detectar Triggers (como el de aparición de pista)
+    private void OnTriggerEnter(Collider other)
+    {
+        // Lógica de Generación de Pista (Trigger al final del módulo)
+        if (other.CompareTag("Trigger") && generator != null)
+        {
+            // Llama al generador para instanciar el siguiente módulo.
+            generator.SpawnModule();
+
+            // Destruye el trigger del módulo viejo para que no se dispare dos veces.
+            Destroy(other.gameObject);
+        }
+    }
+
+
+    // --- MÉTODO: GESTIÓN DE MUERTE (ESTADO TERMINAL) ---
+
+    private void Die()
+    {
+        Debug.Log("Game Over: El jugador chocó con un obstáculo.");
+
+        // 1. Deshabilitar Controles (detener el input y movimiento)
+        this.enabled = false;
+
+        // Detener completamente la física del jugador
+        if (rb != null)
+        {
+            rb.linearVelocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // 2. Cancelar el deslizamiento pendiente (si lo hay)
+        CancelInvoke("StopSliding");
+
+        // 3. Activar Animación de Muerte
+        if (playerAnimator != null)
+        {
+            playerAnimator.SetTrigger("Die");
+        }
+
+        // 4. (Futuro) Llamar al Game Manager Singleton
+        // if (GameManager.Instance != null) { GameManager.Instance.EndGame(); }
     }
 }
