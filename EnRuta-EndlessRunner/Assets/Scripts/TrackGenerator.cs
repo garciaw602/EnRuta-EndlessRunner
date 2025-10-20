@@ -2,37 +2,50 @@ using UnityEngine;
 
 public class TrackGenerator : MonoBehaviour
 {
-    [Header("Módulo de Pista")]
-    [Tooltip("Arrastra aquí tu Prefab completo del módulo de carretera (PF_RoadModule).")]
+    [Header("Referencias de Pista")]
+    [Tooltip("Prefab del módulo de carretera a instanciar. Debe ser RoadModule_01.")]
     public GameObject roadModulePrefab;
 
-    [Tooltip("Longitud exacta del módulo prefab (Medida en RoadModule.cs).")]
-    public float moduleLength = 60f;
+    [Header("Configuración de Generación")]
+    [Tooltip("Longitud exacta del módulo (10m). Asegúrate de que este valor es 10f en el Inspector.")]
+    public float moduleLength = 50f;
 
+    [Tooltip("Número de módulos iniciales para crear el buffer (ej. 4).")]
+    public int initialModules = 4;
+
+    // Posición donde aparecerá el siguiente módulo (la parte trasera Z=0 del prefab).
     private Vector3 nextSpawnPoint;
+
 
     void Start()
     {
-        // Inicializar la posición de aparición en el origen.
-        nextSpawnPoint = Vector3.zero;
+        // 1. Inicializar nextSpawnPoint.
+        // Calculamos la posición trasera del primer módulo (3 longitudes de buffer).
+        // nextSpawnPoint = -(10 * 3) = -30.
+        // Esto coloca el Módulo 1 en -30m, asegurando que el Módulo 4 esté de 0m a 10m.
+        nextSpawnPoint = new Vector3(0, 0, -(moduleLength * (initialModules - 1)));
 
-        // Genera unos cuantos módulos iniciales (visibles) para que el Player empiece a correr.
-        for (int i = 0; i < 4; i++)
+        // 2. Generar los módulos iniciales
+        for (int i = 0; i < initialModules; i++)
         {
             SpawnModule();
         }
     }
 
-    // Método llamado por el Player cuando llega al SpawnTrigger
+
+    /// <summary>
+    /// Instancia un nuevo módulo de pista y avanza el punto de aparición.
+    /// Esta función es llamada por el PlayerController (al cruzar el SpawnTrigger en Z=10).
+    /// </summary>
     public void SpawnModule()
     {
-        // Instancia el nuevo módulo en el punto de aparición calculado.
+        // 1. Instancia el módulo en nextSpawnPoint (su parte trasera Z=0).
         GameObject newModule = Instantiate(roadModulePrefab, nextSpawnPoint, Quaternion.identity);
 
-        // Actualiza el punto de aparición para el siguiente módulo.
+        // 2. Avanza el punto de aparición. La nueva posición es la parte trasera del siguiente módulo (10m más adelante).
         nextSpawnPoint.z += moduleLength;
 
-        // Opcional: Ajustar la longitud del módulo en el nuevo script RoadModule
+        // Opcional: Esto es útil si RoadModule necesita la longitud para su propia lógica.
         if (newModule.GetComponent<RoadModule>() != null)
         {
             newModule.GetComponent<RoadModule>().moduleLength = moduleLength;
