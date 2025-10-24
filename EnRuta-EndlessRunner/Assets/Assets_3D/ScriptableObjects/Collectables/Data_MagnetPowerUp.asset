@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Data_MagnetPowerUp
   m_EditorClassIdentifier: 
   collectableName: 
-  type: 0
+  type: 2
   baseValue: 1
-  powerUpEffect: {fileID: 0}
+  powerUpEffect: {fileID: 11400000, guid: 5913bdcf8cdb3e94d848b62526ccf02f, type: 2}
