@@ -9,7 +9,8 @@ public class Collectable : MonoBehaviour
     // Componentes para la lógica de atracción
     private PlayerController player;
     private Rigidbody rb;
-    private float attractionSpeed = 15f;
+    // Velocidad de atracción muy alta para simular la inmediatez
+    private float attractionSpeed = 500f;
 
     void Start()
     {
@@ -20,52 +21,66 @@ public class Collectable : MonoBehaviour
             rb.isKinematic = true;
         }
 
-        // Solución para el aviso CS0618: FindFirstObjectByType
+        // Obtener la referencia del jugador
         player = FindFirstObjectByType<PlayerController>();
     }
 
     void Update()
     {
-        // Solo atraer si el Imán está activo, NO somos un PowerUp, y existe el jugador.
+        // 1. Lógica del Imán (Atracción y Recolección por Proximidad)
         if (player != null && player.isMagnetActive && data.type != CollectableType.PowerUp)
         {
             float distance = Vector3.Distance(transform.position, player.transform.position);
 
-            // La atracción comienza si estamos dentro del radio actual del imán.
-            // Ahora usamos la propiedad pública CurrentAttractRadius:
-            if (distance < player.CurrentAttractRadius) // <--- ¡Esta es la corrección!
+            //  Umbral de Recolección (0.3f)
+            // Esto garantiza que el collectible se recoja justo antes de ser arrastrado.
+            if (distance < 0.15f)
+            {
+                player.ProcessCollectable(data);
+                Destroy(gameObject);
+                return;
+            }
+
+            // 2. Atracción Visible (Si está en rango, pero aún no cerca)
+            if (distance < player.CurrentAttractRadius)
             {
                 Vector3 targetPosition = player.transform.position;
-                float attractionSpeed = 15f;
 
-                // Mueve el objeto directamente hacia el centro del jugador
+                // Mueve el objeto hacia el centro del jugador
                 transform.position = Vector3.MoveTowards(transform.position, targetPosition, attractionSpeed * Time.deltaTime);
             }
         }
-    
-}
+    }
 
     private void OnTriggerEnter(Collider other)
     {
+        // Esta función solo maneja la recolección manual (sin imán) y los Power-ups.
+
         PlayerController pc = other.GetComponent<PlayerController>();
 
         if (pc != null)
         {
-            // ==========================================================
-            // DEBUGGING DETALLADO PARA VER EL TIPO ESPECÍFICO DE RECICLAJE
-            // ==========================================================
-            if (data != null)
-            {
-                // La variable 'data.collectableName' contiene 'Plástico', 'Vidrio' o 'Cartón'.
-                Debug.Log($"Recolectado: {data.collectableName} | Tipo General: {data.type}");
-            }
-            else
-            {
-                Debug.LogError($"Error: CollectableData no está asignado en {gameObject.name}");
-            }
+            // Solo procesamos si el Imán NO está activo O si el objeto recolectado es un PowerUp.
+            bool isManualCollection = !pc.isMagnetActive;
+            bool isPowerUp = data.type == CollectableType.PowerUp;
 
-            pc.ProcessCollectable(data);
-            Destroy(gameObject);
+            // Si es recolección manual (sin imán) O es un PowerUp (que siempre se recogen al contacto)
+            if (isManualCollection || isPowerUp)
+            {
+                // DEBUGGING DETALLADO 
+                if (data != null)
+                {
+                    Debug.Log($"Recolectado: {data.collectableName} | Tipo General: {data.type}");
+                }
+                else
+                {
+                    Debug.LogError($"Error: CollectableData no está asignado en {gameObject.name}");
+                }
+
+                pc.ProcessCollectable(data);
+                Destroy(gameObject);
+            }
+            // Si el Imán está activo y es un Collectible (no un PowerUp), la recolección se hace por proximidad en Update().
         }
     }
 }
