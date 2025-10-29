@@ -618,14 +618,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f134893069b656942aa7eead15434335, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerAnimator: {fileID: 0}
-  generator: {fileID: 0}
-  forwardSpeed: 0
-  laneChangeSpeed: 15
-  laneDistance: 4
+  baseSpeed: 0
+  lateralSpeed: 5
   jumpForce: 10
-  gravityModifier: 1.5
+  laneDistance: 3
+  totalGarbage: 0
+  plasticCount: 0
+  glassCount: 0
+  cardboardCount: 0
+  currentSpeedMultiplier: 1
+  isMagnetActive: 0
   slideDuration: 1
+  playerCollider: {fileID: 0}
+  reducedColliderHeight: 0.5
+  magnetAttractionCollider: {fileID: 0}
 --- !u!54 &636099590
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -893,14 +899,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f134893069b656942aa7eead15434335, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerAnimator: {fileID: 0}
-  generator: {fileID: 0}
-  forwardSpeed: 10
-  laneChangeSpeed: 15
-  laneDistance: 4
+  baseSpeed: 10
+  lateralSpeed: 5
   jumpForce: 10
-  gravityModifier: 1.5
+  laneDistance: 4
+  totalGarbage: 0
+  plasticCount: 0
+  glassCount: 0
+  cardboardCount: 0
+  currentSpeedMultiplier: 1
+  isMagnetActive: 0
   slideDuration: 1
+  playerCollider: {fileID: 0}
+  reducedColliderHeight: 0.5
+  magnetAttractionCollider: {fileID: 0}
 --- !u!54 &1171655666
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -978,6 +990,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 3c5f44daf8e0259428a6685f1bebf5c3, type: 3}
       propertyPath: m_Name
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3c5f44daf8e0259428a6685f1bebf5c3, type: 3}
+      propertyPath: m_TagString
       value: Player
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -1080,10 +1096,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 636099588}
   segmentPrefabs:
-  - {fileID: 1882697200601412604, guid: 27d50f90df90e554498c4a278e4cb6b2, type: 3}
-  - {fileID: 4024874129599462388, guid: a3725146bfacb3d4da6941a38bd877e4, type: 3}
-  segmentLength: 20
-  segmentsVisible: 1
+  - {fileID: 2422540749938151530, guid: 27d50f90df90e554498c4a278e4cb6b2, type: 3}
+  - {fileID: 3231147525548443473, guid: a3725146bfacb3d4da6941a38bd877e4, type: 3}
+  - {fileID: 5613662443807573298, guid: a0508c4aa5480384bbb08daca54afa6e, type: 3}
+  initialSegments: 3
+  initialSpawnAhead: 20
+  safeSpawnDistance: 30
+  extraSpacing: 0.1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
