@@ -3,14 +3,19 @@
 
 
 
-Flujo,Acción Principal,Herramienta Clave,Propósito del Paso
-Inicio Diario (Sincronización),Hacer Pull/Fetch desde la rama dev a la rama local dev.,Git Desktop,Asegurar que el desarrollador tiene la versión más reciente del trabajo del equipo.
-Desarrollo Diario,"Crear cambios, hacer Commit con mensajes descriptivos.",Git Desktop,"Registrar el progreso local en la rama personal (wilson, etc.)."
-Subir Cambios,Hacer Push de la rama personal a GitHub.,Git Desktop,"Compartir el código con el repositorio remoto, preparándose para el merge."
-Integración (PR),Crear el Pull Request (PR) de la rama personal a dev.,GitHub.com,Iniciar la revisión de código y la prueba de integración.
-Resolución de Conflictos,Abrir archivos en conflicto y resolver manualmente las líneas de código.,Visual Studio Code,Herramienta esencial para resolver conflictos de merge de manera eficiente y precisa.
-Merge Final,Aprobar y completar el Merge del PR a la rama dev.,GitHub.com,Integrar código estable y aprobado al tronco de desarrollo activo.
-Hotfix (Crítico),Bifurcar de main → Arreglar → Merge a main y dev.,GitHub.com / Git Desktop,Proceso de emergencia para parchar bugs en la versión de producción sin desestabilizar dev.
+## 🛠️ FLUJO DE TRABAJO DEL EQUIPO (Proceso Estandarizado)
+
+### ⚙️ ESTRUCTURA DE RAMAS (Flujo de Trabajo)
+
+| Flujo | Acción Principal | Herramienta Clave | Propósito del Paso |
+| :--- | :--- | :--- | :--- |
+| **Inicio Diario (Sincronización)** | Hacer **Pull/Fetch** desde la rama **`dev`** a la rama local **`dev`**. | Git Desktop | Asegurar que el desarrollador tiene la versión más reciente del trabajo del equipo. |
+| **Desarrollo Diario** | Crear cambios, hacer **Commit** con mensajes descriptivos. | Git Desktop | Registrar el progreso local en la rama personal (`wilson`, etc.). |
+| **Subir Cambios** | Hacer **Push** de la rama personal a GitHub. | Git Desktop | Compartir el código con el repositorio remoto, preparándose para el *merge*. |
+| **Integración (PR)** | Crear el **Pull Request (PR)** de la rama personal a **`dev`**. | GitHub.com | Iniciar la revisión de código y la prueba de integración. |
+| **Resolución de Conflictos** | Abrir archivos en conflicto y resolver manualmente las líneas de código. | Visual Studio Code | Herramienta esencial para resolver conflictos de *merge* de manera eficiente y precisa. |
+| **Merge Final** | Aprobar y completar el *Merge* del PR a la rama **`dev`**. | GitHub.com | Integrar código estable y aprobado al tronco de desarrollo activo. |
+| **Hotfix (Crítico)** | **Bifurcar de `main`** $\to$ Arreglar $\to$ **Merge a `main` y `dev`**. | GitHub.com / Git Desktop | Proceso de emergencia para parchar *bugs* en la versión de producción sin desestabilizar `dev`. |
 
 
 
