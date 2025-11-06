@@ -1,12 +1,33 @@
 # 🚀 ENRUTA - Endless Runner Cívico
-**Desarrollado por [Nombre del Estudio, ej: PIXEL CÍVICO]**
+**Desarrollado por [ PIXEL CÍVICO]**
 
 ---
 
+### 💻 REQUERIMIENTOS TÉCNICOS
+* **Motor de Juego:** Unity (6000.0.48f1).
+* **Herramienta de Merge Recomendada:** **Visual Studio Code** (para la resolución manual de conflictos).
 
-## 🛠️ FLUJO DE TRABAJO DEL EQUIPO (Proceso Estandarizado)
+---
 
-### ⚙️ ESTRUCTURA DE RAMAS (Flujo de Trabajo)
+## ⚙️ ESTRUCTURA DE RAMAS (Flujo de Trabajo)
+
+Esta tabla detalla el propósito de cada rama y sus reglas de integración.
+
+| Rama | Propósito Principal | Regla de Bifurcación y Merge |
+| :--- | :--- | :--- |
+| **`main`** | **PRODUCCIÓN (Versión Estable)**. Lo que ve el público final. | Solo *merge* desde `dev` o **`hotfix`**. |
+| **`dev`** | **INTEGRACIÓN DIARIA.** Versión de *testing* activa. | *Merge* desde ramas secundarias. |
+| **`hotfix`** | **CORRECCIONES CRÍTICAS EN PRODUCCIÓN.** Para *bugs* urgentes en `main`. | **Bifurca de `main`. Mergea a `main` Y `dev` simultáneamente.** |
+| **`wilson`, `juan-sebastian`** | TRABAJO CORE/LÓGICA. | *Merge* a `dev` vía Pull Request (PR). |
+| **`ui-ux`** | INTERFACES Y LAYOUTS. | *Merge* a `dev` vía Pull Request (PR). |
+| **`art-assets`** | MODELOS Y ESCALA 3D. | *Merge* a `dev` vía Pull Request (PR). |
+| **`audio-assets`** | AUDIO Y SFX. | *Merge* a `dev` vía Pull Request (PR). |
+
+---
+
+### 🛠️ FLUJO DE TRABAJO DEL EQUIPO (Git Desktop & VS Code)
+
+Esta tabla detalla las acciones y herramientas clave para el desarrollo diario y la integración de código.
 
 | Flujo | Acción Principal | Herramienta Clave | Propósito del Paso |
 | :--- | :--- | :--- | :--- |
@@ -18,20 +39,7 @@
 | **Merge Final** | Aprobar y completar el *Merge* del PR a la rama **`dev`**. | GitHub.com | Integrar código estable y aprobado al tronco de desarrollo activo. |
 | **Hotfix (Crítico)** | **Bifurcar de `main`** $\to$ Arreglar $\to$ **Merge a `main` y `dev`**. | GitHub.com / Git Desktop | Proceso de emergencia para parchar *bugs* en la versión de producción sin desestabilizar `dev`. |
 
-
-
 ---
-
-### ⚙️ ESTRUCTURA DE RAMAS (Flujo de Trabajo)
-
-| Rama | Propósito Principal | Regla de Bifurcación y Merge |
-| :--- | :--- | :--- |
-| **`main`** | **PRODUCCIÓN (Versión Estable)**. Lo que ve el publico final. | Solo *merge* desde `dev` o `hotfix`. |
-| **`dev`** | **INTEGRACIÓN DIARIA.** Versión de *testing* activa. | *Merge* desde ramas secundarias (`wilson`, `art-assets`, etc.). |
-| **`hotfix`** | **CORRECCIONES CRÍTICAS EN PRODUCCIÓN.** Para *bugs* urgentes en `main`. | **Bifurca de `main`. Mergea a `main` Y `dev`.** |
-| **`wilson`, `juan-sebastian`** | TRABAJO CORE/LÓGICA. | *Merge* a `dev` vía Pull Request (PR). |
-| **`ui-ux`** | INTERFACES Y LAYOUTS. | *Merge* a `dev` vía PR. |
-| **`art-assets`** | MODELOS Y ESCALA 3D. | *Merge* a `dev` vía PR. |
 
 ### 🛑 REGLA CLAVE: PULL REQUESTS (PR)
 
@@ -43,32 +51,24 @@ Todas las integraciones a `dev` deben hacerse a través de un **Pull Request (PR
 ---
 
 
-### 💻 REQUERIMIENTOS TÉCNICOS
-* **Motor de Juego:** Unity (6000.0.48f1).
-* **Herramienta de Merge Recomendada:** **Visual Studio Code** (para la resolución manual de conflictos).
-
-
----
-
-
-### 🛠️ FLUJO DE TRABAJO DEL EQUIPO (Git Desktop & VS Code)
+🛠️ FLUJO DE TRABAJO DEL EQUIPO (Git Desktop & VS Code)
 Este es el proceso estandarizado que el equipo debe seguir para el control de versiones, utilizando Git Desktop para el manejo diario y Visual Studio Code para la resolución de conflictos.
 
 A. Flujo Diario de Desarrollo
-Este proceso se realiza principalmente con Git Desktop para los commits y push rápidos.
+Este proceso se realiza principalmente con Git Desktop para los commits y push rápidos. Aplica a todas las ramas (wilson, juan-sebastian, art-assets, ui-ux, audio-assets).
 
 Sincronizar dev: Al iniciar la jornada, cambia a la rama dev y haz Pull/Fetch para tener los últimos cambios integrados por el equipo.
 
-Trabajar: Cambia a tu Rama Personal (wilson, juan-sebastian, etc.).
+Trabajar: Cambia a tu Rama Asignada (personal, art-assets, audio-assets, etc.).
 
 Comprometer: Haz cambios y crea un Commit descriptivo en Git Desktop.
 
-Subir: Haz Push a tu rama personal en GitHub.
+Subir: Haz Push a tu rama asignada en GitHub.
 
 B. Flujo de Integración (Pull Request - PR)
-Este proceso es la Regla de Oro y asegura la calidad del código.
+Este proceso es la Regla de Oro y asegura la calidad del código. TODAS las ramas secundarias deben seguir este flujo para ingresar a dev.
 
-Crear el PR: Cuando una tarea esté finalizada, ve a GitHub.com y crea un Pull Request de tu rama-personal a dev.
+Crear el PR: Cuando una tarea esté finalizada, ve a GitHub.com y crea un Pull Request de tu rama secundaria (ej., wilson, audio-assets) a dev.
 
 Notificar: Anuncia en el canal de Discord #control-de-versiones que el PR está listo para revisión.
 
@@ -78,7 +78,7 @@ Si hay conflictos, el desarrollador responsable abre los archivos conflictivos e
 
 Resuelve manualmente los conflictos línea por línea.
 
-Una vez resuelto, hace un nuevo Commit y Push a la rama personal para actualizar el PR.
+Una vez resuelto, hace un nuevo Commit y Push a la rama asignada para actualizar el PR.
 
 Merge Final: El Líder del Proyecto aprueba y completa el Merge a dev.
 
