@@ -1,6 +1,7 @@
 # 🚀 ENRUTA - Endless Runner Cívico
 **Desarrollado por [Nombre del Estudio, ej: PIXEL CÍVICO]**
 
+---
 
 
 ## 🛠️ FLUJO DE TRABAJO DEL EQUIPO (Proceso Estandarizado)
@@ -19,6 +20,8 @@
 
 
 
+---
+
 ### ⚙️ ESTRUCTURA DE RAMAS (Flujo de Trabajo)
 
 | Rama | Propósito Principal | Regla de Bifurcación y Merge |
@@ -36,13 +39,19 @@
 
 Todas las integraciones a `dev` deben hacerse a través de un **Pull Request (PR)** y deben ser aprobadas por el Líder de Proyecto/Core.
 
+
 ---
+
 
 ### 💻 REQUERIMIENTOS TÉCNICOS
 * **Motor de Juego:** Unity (6000.0.48f1).
 * **Herramienta de Merge Recomendada:** **Visual Studio Code** (para la resolución manual de conflictos).
 
-🛠️ FLUJO DE TRABAJO DEL EQUIPO (Git Desktop & VS Code)
+
+---
+
+
+### 🛠️ FLUJO DE TRABAJO DEL EQUIPO (Git Desktop & VS Code)
 Este es el proceso estandarizado que el equipo debe seguir para el control de versiones, utilizando Git Desktop para el manejo diario y Visual Studio Code para la resolución de conflictos.
 
 A. Flujo Diario de Desarrollo
