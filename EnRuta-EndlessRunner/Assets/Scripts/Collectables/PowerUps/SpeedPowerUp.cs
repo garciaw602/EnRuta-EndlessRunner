@@ -1,19 +1,14 @@
-// SpeedPowerUp.cs
-// Implementación específica del poder de velocidad.
-
 using UnityEngine;
 
-// crea la opción 'Assets/Create/PowerUps/Speed' en el menú.
 [CreateAssetMenu(fileName = "SpeedPowerUp", menuName = "PowerUps/Speed")]
 public class SpeedPowerUp : PowerUpEffectData
 {
-    [Tooltip("Multiplicador de velocidad que aplica este poder.")]
+    [Tooltip("Multiplicador de velocidad (usar < 1 para ralentizar)")]
     public float speedMultiplier = 2.0f;
 
-    //  Implementamos la función obligatoria de la interfaz (IPowerUpEffect).
-    public override void ApplyEffect(PlayerController player, float duration)
+    // FIX: Llama al método del PowerUpEffectController.
+    public override void ApplyEffect(PowerUpEffectController receiver, float duration)
     {
-        // La lógica del Power-Up vive aquí, encapsulada.
-        player.ActivateSpeedBoost(speedMultiplier, duration);
+        receiver.ActivateSpeedBoost(speedMultiplier, duration);
     }
 }

@@ -3,13 +3,12 @@
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el archivo CollectableData (.asset)")]
     public CollectableData data;
 
     // Componentes para la lógica de atracción
     private PlayerController player;
+    private PowerUpEffectController powerUpEffects; // FIX: NUEVA REFERENCIA
     private Rigidbody rb;
-    // Velocidad de atracción muy alta para simular la inmediatez
     private float attractionSpeed = 500f;
 
     void Start()
@@ -21,19 +20,29 @@ public class Collectable : MonoBehaviour
             rb.isKinematic = true;
         }
 
-        // Obtener la referencia del jugador
         player = FindFirstObjectByType<PlayerController>();
+
+        // FIX: Obtener el componente PowerUpEffectController del jugador
+        if (player != null)
+        {
+            powerUpEffects = player.GetComponent<PowerUpEffectController>();
+        }
+
+        if (powerUpEffects == null)
+        {
+            Debug.LogWarning("Collectable no encontró PowerUpEffectController. La lógica de imán fallará.");
+        }
     }
 
     void Update()
     {
         // 1. Lógica del Imán (Atracción y Recolección por Proximidad)
-        if (player != null && player.isMagnetActive && data.type != CollectableType.PowerUp)
+        // FIX: Comprueba si existe y si el imán está activo en el PowerUpEffectController
+        if (player != null && powerUpEffects != null && powerUpEffects.isMagnetActive && data.type != CollectableType.PowerUp)
         {
             float distance = Vector3.Distance(transform.position, player.transform.position);
 
-            //  Umbral de Recolección (0.3f)
-            // Esto garantiza que el collectible se recoja justo antes de ser arrastrado.
+            // Umbral de Recolección
             if (distance < 0.15f)
             {
                 player.ProcessCollectable(data);
@@ -41,12 +50,11 @@ public class Collectable : MonoBehaviour
                 return;
             }
 
-            // 2. Atracción Visible (Si está en rango, pero aún no cerca)
-            if (distance < player.CurrentAttractRadius)
+            // 2. Lógica de Atracción
+            // FIX: Usa el radio del PowerUpEffectController
+            if (distance < powerUpEffects.CurrentAttractRadius)
             {
                 Vector3 targetPosition = player.transform.position;
-
-                // Mueve el objeto hacia el centro del jugador
                 transform.position = Vector3.MoveTowards(transform.position, targetPosition, attractionSpeed * Time.deltaTime);
             }
         }
@@ -54,20 +62,21 @@ public class Collectable : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // Esta función solo maneja la recolección manual (sin imán) y los Power-ups.
-
         PlayerController pc = other.GetComponent<PlayerController>();
 
         if (pc != null)
         {
-            // Solo procesamos si el Imán NO está activo O si el objeto recolectado es un PowerUp.
-            bool isManualCollection = !pc.isMagnetActive;
+            // FIX: Obtener el PowerUpEffectController para verificar el estado del imán en TriggerEnter
+            PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
+
+            bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
+
+            // Solo procesamos si el Imán NO está activo O si es un PowerUp.
+            bool isManualCollection = !isMagnetActive;
             bool isPowerUp = data.type == CollectableType.PowerUp;
 
-            // Si es recolección manual (sin imán) O es un PowerUp (que siempre se recogen al contacto)
             if (isManualCollection || isPowerUp)
             {
-                // DEBUGGING DETALLADO 
                 if (data != null)
                 {
                     Debug.Log($"Recolectado: {data.collectableName} | Tipo General: {data.type}");
@@ -80,7 +89,6 @@ public class Collectable : MonoBehaviour
                 pc.ProcessCollectable(data);
                 Destroy(gameObject);
             }
-            // Si el Imán está activo y es un Collectible (no un PowerUp), la recolección se hace por proximidad en Update().
         }
     }
 }
