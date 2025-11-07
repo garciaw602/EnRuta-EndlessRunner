@@ -8,6 +8,7 @@ TagManager:
   - Destroy
   - Trigger
   - Ground
+  - PowerUp
   layers:
   - Default
   - TransparentFX
