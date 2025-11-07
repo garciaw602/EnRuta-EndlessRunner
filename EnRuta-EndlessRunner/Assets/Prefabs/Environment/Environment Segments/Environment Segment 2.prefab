@@ -74,7 +74,7 @@ GameObject:
   - component: {fileID: 3231147525548443473}
   m_Layer: 0
   m_Name: Environment Segment 2
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -110,9 +110,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a064d65216c25ca48b274a187bb49709, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  powerUpPrefabs:
-  - {fileID: 6288361865518058662, guid: f5fc0c33cf4943a46867d96b22b74015, type: 3}
-  - {fileID: 3046598598168049027, guid: e42c505d6e54d7f4ca617bb286cf167e, type: 3}
+  lanePoints:
+  - {fileID: 933113121488049341}
+  - {fileID: 8467745257943297101}
+  - {fileID: 1765406639141070042}
+  startPoint: {fileID: 0}
+  endPoint: {fileID: 0}
   collectiblePrefabs:
   - {fileID: 6243543185397319980, guid: 25d3a80f8bd3587498068cca43d00891, type: 3}
   - {fileID: 3760898891926529003, guid: 1dd2d15d335576a489327fc37667b948, type: 3}
@@ -124,16 +127,19 @@ MonoBehaviour:
   - {fileID: 236995693668146514, guid: d0d2398006686cf4ca9439b967be1c3a, type: 3}
   - {fileID: 8386207068080791345, guid: db0e53c34d2cadb44b2a65b148ff17ca, type: 3}
   - {fileID: 168633001861420986, guid: 42b651e6dc8a4bc4084b766ba5d592a1, type: 3}
-  lanePoints:
-  - {fileID: 933113121488049341}
-  - {fileID: 8467745257943297101}
-  - {fileID: 1765406639141070042}
-  powerUpChance: 0.1
-  obstacleChance: 0.3
+  powerUpPrefabs:
+  - {fileID: 6288361865518058662, guid: f5fc0c33cf4943a46867d96b22b74015, type: 3}
+  - {fileID: 3046598598168049027, guid: e42c505d6e54d7f4ca617bb286cf167e, type: 3}
   collectibleChance: 0.7
+  obstacleChance: 0.3
+  powerUpChance: 0.1
+  safeStartOffset: 8
+  safeEndOffset: 6
+  rowSpacing: 4
+  minCollectibles: 4
+  maxCollectibles: 8
   collectibleSpacing: 2.5
-  minCollectibleChain: 4
-  maxCollectibleChain: 7
+  collectibleY: 1.2
 --- !u!1 &5975533915736673028
 GameObject:
   m_ObjectHideFlags: 0

@@ -153,11 +153,6 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // Si choca con un Trigger
-        if (other.CompareTag("Obstaculo") && !isDead)
-        {
-            Die();
-        }
     }
 
     // --- LÓGICA DE COLECCIÓN ---
