@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5917468982809588863}
-  - component: {fileID: 1122379577970161593}
+  - component: {fileID: 5394110867131473357}
   m_Layer: 0
   m_Name: EnvironmentManager
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1122379577970161593
+--- !u!114 &5394110867131473357
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -41,12 +41,15 @@ MonoBehaviour:
   m_GameObject: {fileID: 7921379041464599688}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: add92bb237b448e47a952874699392ad, type: 3}
+  m_Script: {fileID: 11500000, guid: c86162a0c51f12945befc9353062b2bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   segmentPrefabs:
-  - {fileID: 1882697200601412604, guid: 27d50f90df90e554498c4a278e4cb6b2, type: 3}
-  - {fileID: 4024874129599462388, guid: a3725146bfacb3d4da6941a38bd877e4, type: 3}
-  segmentsOnScreen: 1
-  segmentLength: 20
-  moveSpeed: 10
+  - {fileID: 2422540749938151530, guid: 27d50f90df90e554498c4a278e4cb6b2, type: 3}
+  - {fileID: 3231147525548443473, guid: a3725146bfacb3d4da6941a38bd877e4, type: 3}
+  - {fileID: 5613662443807573298, guid: a0508c4aa5480384bbb08daca54afa6e, type: 3}
+  initialSegments: 3
+  initialSpawnAhead: 20
+  safeSpawnDistance: 30
+  extraSpacing: 0.1
