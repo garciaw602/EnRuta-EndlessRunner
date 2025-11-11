@@ -3,92 +3,71 @@
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {
+    // Datos definidos por el Scriptable Object (SO)
     public CollectableData data;
 
-    // Componentes para la lógica de atracción
-    private PlayerController player;
-    private PowerUpEffectController powerUpEffects; // FIX: NUEVA REFERENCIA
-    private Rigidbody rb;
-    private float attractionSpeed = 500f;
-
+    // Referencia al controlador de efectos del jugador para la limpieza del imán.
+    private PowerUpEffectController powerUpEffects; 
+    
     void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        if (rb == null)
+        if (data == null)
         {
-            rb = gameObject.AddComponent<Rigidbody>();
-            rb.isKinematic = true;
+            Debug.LogError($"Collectable en {gameObject.name} no tiene asignado CollectableData. ¡Esto causará fallos!");
+        }
+        
+        // Búsqueda de la referencia del PlayerController
+        GameObject playerGO = GameObject.FindWithTag("Player");
+        if (playerGO != null)
+        {
+            powerUpEffects = playerGO.GetComponent<PowerUpEffectController>();
+        }
+        else
+        {
+            Debug.LogError("Collectable no encontró el objeto 'Player'. ¿Tiene la etiqueta 'Player'?");
         }
 
-        player = FindFirstObjectByType<PlayerController>();
-
-        // FIX: Obtener el componente PowerUpEffectController del jugador
-        if (player != null)
+        // Asegura que el Collider sea Trigger para que el jugador pueda atravesarlo y recolectarlo.
+        Collider col = GetComponent<Collider>();
+        if (col != null)
         {
-            powerUpEffects = player.GetComponent<PowerUpEffectController>();
-        }
-
-        if (powerUpEffects == null)
-        {
-            Debug.LogWarning("Collectable no encontró PowerUpEffectController. La lógica de imán fallará.");
-        }
-    }
-
-    void Update()
-    {
-        // 1. Lógica del Imán (Atracción y Recolección por Proximidad)
-        // FIX: Comprueba si existe y si el imán está activo en el PowerUpEffectController
-        if (player != null && powerUpEffects != null && powerUpEffects.isMagnetActive && data.type != CollectableType.PowerUp)
-        {
-            float distance = Vector3.Distance(transform.position, player.transform.position);
-
-            // Umbral de Recolección
-            if (distance < 0.15f)
-            {
-                player.ProcessCollectable(data);
-                Destroy(gameObject);
-                return;
-            }
-
-            // 2. Lógica de Atracción
-            // FIX: Usa el radio del PowerUpEffectController
-            if (distance < powerUpEffects.CurrentAttractRadius)
-            {
-                Vector3 targetPosition = player.transform.position;
-                transform.position = Vector3.MoveTowards(transform.position, targetPosition, attractionSpeed * Time.deltaTime);
-            }
+            col.isTrigger = true;
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    // EL MÉTODO Update() FUE ELIMINADO para centralizar el movimiento en PowerUpEffectController.
+
+    /// <summary>
+    /// Intenta recolectar el objeto, llamado por el PlayerController al chocar con su Collider de cuerpo.
+    /// </summary>
+    public void AttemptCollection(PlayerController pc)
     {
-        PlayerController pc = other.GetComponent<PlayerController>();
+        if (data == null) return;
 
-        if (pc != null)
+        // Obtiene el estado actual del imán.
+        PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
+        bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
+
+        // LÓGICA DE RECOLECCIÓN SIMPLIFICADA Y CORREGIDA PARA ANIMACIÓN:
+        // Solo permitimos la recolección por contacto (el cuerpo del jugador) si el imán NO está activo.
+        // Si el imán está activo, la recolección la gestionará el PowerUpEffectController.Update(), 
+        // lo que permite ver la animación de atracción.
+        bool shouldCollect = !isMagnetActive;
+
+
+        if (shouldCollect)
         {
-            // FIX: Obtener el PowerUpEffectController para verificar el estado del imán en TriggerEnter
-            PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
-
-            bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
-
-            // Solo procesamos si el Imán NO está activo O si es un PowerUp.
-            bool isManualCollection = !isMagnetActive;
-            bool isPowerUp = data.type == CollectableType.PowerUp;
-
-            if (isManualCollection || isPowerUp)
+            // LIMPIEZA DE SEGURIDAD: Retira el objeto de la lista de atracción del imán (si estaba).
+            if (powerUpEffects != null)
             {
-                if (data != null)
-                {
-                    Debug.Log($"Recolectado: {data.collectableName} | Tipo General: {data.type}");
-                }
-                else
-                {
-                    Debug.LogError($"Error: CollectableData no está asignado en {gameObject.name}");
-                }
-
-                pc.ProcessCollectable(data);
-                Destroy(gameObject);
+                powerUpEffects.RemoveAttractableObject(gameObject);
             }
+
+            pc.ProcessCollectable(data); // Aplica el efecto o suma el puntaje
+            Destroy(gameObject); // Destruye el objeto recolectado
         }
+        
+        // Si el imán está activo, la función termina aquí. El objeto es movido y recolectado
+        // por PowerUpEffectController.Update() después de ser animado.
     }
 }

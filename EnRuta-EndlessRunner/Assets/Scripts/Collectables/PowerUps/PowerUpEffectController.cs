@@ -1,35 +1,120 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic; // Necesario para guardar los objetos a atraer
 
 public class PowerUpEffectController : MonoBehaviour
 {
     [Header("Componentes de Power-Up")]
-    public SphereCollider magnetAttractionCollider;
+    // Collider del Player que define el radio de atracciÃ³n del imÃ¡n.
+    public SphereCollider magnetAttractionCollider; 
 
     [HideInInspector] public bool isMagnetActive = false;
-
-    // FIX: Propiedad p�blica para que Collectable.cs la lea.
-    private float _currentAttractRadius = 0f;
-    public float CurrentAttractRadius => _currentAttractRadius;
+    
+    // Lista de objetos de BASURA que estÃ¡n dentro del radio del imÃ¡n.
+    private List<GameObject> attractableObjects = new List<GameObject>();
 
     private PlayerController player;
     private Coroutine speedCoroutine;
     private Coroutine magnetCoroutine;
 
+    [Header("Magnet Movement")]
+    // AUMENTADO DE 1000f a 2500f para un efecto de atracciÃ³n mÃ¡s dramÃ¡tico.
+    public float attractionSpeed = 2500f; 
+    public float collectionHeightOffset = 1.0f;
+
     void Awake()
     {
-        // Obtiene la referencia al PlayerController para modificar currentSpeedMultiplier
         player = GetComponent<PlayerController>();
         if (player == null) Debug.LogError("PowerUpEffectController requiere un PlayerController en el mismo objeto.");
 
-        // Inicializar el collider del im�n desactivado
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.enabled = false;
+            magnetAttractionCollider.isTrigger = true; 
+        }
+    }
+    
+    /// <summary>
+    /// Maneja el movimiento de todos los objetos en la lista 'attractableObjects'.
+    /// </summary>
+    void Update()
+    {
+        // Solo ejecutar si el imÃ¡n estÃ¡ activo.
+        if (!isMagnetActive) return;
+
+        // IteraciÃ³n inversa para poder eliminar objetos de la lista mientras iteramos.
+        for (int i = attractableObjects.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = attractableObjects[i];
+            
+            // Si el objeto fue destruido, lo removemos de la lista.
+            if (obj == null)
+            {
+                attractableObjects.RemoveAt(i);
+                continue;
+            }
+
+            // Mover el objeto hacia la posiciÃ³n del jugador
+            Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
+            // Se usa MoveTowards para una velocidad constante, lo cual se siente muy potente.
+            obj.transform.position = Vector3.MoveTowards(obj.transform.position, targetPosition, attractionSpeed * Time.deltaTime);
+            
+            // RecolecciÃ³n por proximidad (cuando llegan al cuerpo del jugador)
+            float distance = Vector3.Distance(obj.transform.position, targetPosition);
+            if (distance < 0.5f)
+            {
+                Collectable collectable = obj.GetComponent<Collectable>();
+                if (collectable != null)
+                {
+                    // RecolecciÃ³n directa, ya que ha sido atraÃ­do por el imÃ¡n
+                    player.ProcessCollectable(collectable.data);
+                }
+                Destroy(obj);
+                attractableObjects.RemoveAt(i);
+            }
         }
     }
 
-    // --- L�GICA DE VELOCIDAD/RELENTIZACI�N ---
+    /// <summary>
+    /// Detecta objetos que entran al radio del imÃ¡n (magnetAttractionCollider).
+    /// </summary>
+    void OnTriggerEnter(Collider other)
+    {
+        // Ignora si el imÃ¡n no estÃ¡ activo o si el objeto es el propio jugador.
+        if (!isMagnetActive || other.gameObject == gameObject) return;
+        
+        Collectable collectable = other.GetComponent<Collectable>();
+        
+        // Debe tener el script Collectable y sus datos.
+        if (collectable == null || collectable.data == null) return;
+        
+        // 1. VERIFICACIÃN CRÃTICA: Descartar PowerUps.
+        if (collectable.data.type == CollectableType.PowerUp)
+        {
+            Debug.Log($"[MAGNET IGNORE SUCCESS] PowerUp '{other.gameObject.name}' detectado correctamente como PowerUp. IGNORADO.");
+            return; 
+        }
+        
+        // 2. Si es basura (y no estÃ¡ ya en la lista), lo aÃ±adimos para ser atraÃ­do por Update.
+        if (!attractableObjects.Contains(other.gameObject))
+        {
+            attractableObjects.Add(other.gameObject);
+        }
+    }
+
+    /// <summary>
+    /// MÃ©todo de limpieza llamado por Collectable.cs al ser recolectado por el cuerpo del jugador.
+    /// </summary>
+    public void RemoveAttractableObject(GameObject obj)
+    {
+        if (attractableObjects.Contains(obj))
+        {
+            attractableObjects.Remove(obj);
+        }
+    }
+
+
+    // --- LÃGICA DE EFECTOS ---
     public void ActivateSpeedBoost(float multiplier, float duration)
     {
         if (speedCoroutine != null) StopCoroutine(speedCoroutine);
@@ -38,16 +123,12 @@ public class PowerUpEffectController : MonoBehaviour
 
     private IEnumerator SpeedBoostRoutine(float multiplier, float duration)
     {
-        // Modifica la variable LE�DA por el PlayerController en FixedUpdate
         player.currentSpeedMultiplier = multiplier;
-
         yield return new WaitForSeconds(duration);
-
         player.currentSpeedMultiplier = 1f;
         speedCoroutine = null;
     }
 
-    // --- L�GICA DEL IM�N ---
     public void ActivateMagnet(float radius, float duration)
     {
         if (magnetCoroutine != null) StopCoroutine(magnetCoroutine);
@@ -57,7 +138,6 @@ public class PowerUpEffectController : MonoBehaviour
     private IEnumerator MagnetRoutine(float radius, float duration)
     {
         isMagnetActive = true;
-        _currentAttractRadius = radius;
 
         if (magnetAttractionCollider != null)
         {
@@ -67,8 +147,10 @@ public class PowerUpEffectController : MonoBehaviour
 
         yield return new WaitForSeconds(duration);
 
+        // Al finalizar, limpiamos la lista de objetos y desactivamos.
+        attractableObjects.Clear();
+        
         isMagnetActive = false;
-        _currentAttractRadius = 0f;
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.enabled = false;
