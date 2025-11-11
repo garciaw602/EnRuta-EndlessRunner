@@ -16,10 +16,11 @@ public class PowerUpEffectController : MonoBehaviour
     private PlayerController player;
     private Coroutine speedCoroutine;
     private Coroutine magnetCoroutine;
-    
+
     [Header("Magnet Movement")]
     // AUMENTADO DE 1000f a 2500f para un efecto de atracción más dramático.
     public float attractionSpeed = 2500f; 
+    public float collectionHeightOffset = 1.0f;
 
     void Awake()
     {
@@ -54,7 +55,7 @@ public class PowerUpEffectController : MonoBehaviour
             }
 
             // Mover el objeto hacia la posición del jugador
-            Vector3 targetPosition = transform.position;
+            Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
             // Se usa MoveTowards para una velocidad constante, lo cual se siente muy potente.
             obj.transform.position = Vector3.MoveTowards(obj.transform.position, targetPosition, attractionSpeed * Time.deltaTime);
             
