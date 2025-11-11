@@ -149,10 +149,10 @@ public class PlayerController : MonoBehaviour
 
         if (item != null)
         {
-            ProcessCollectable(item.data);
-            return;
+            // DELEGACIÓN: Llamamos al ítem para que GESTIONE la recolección y la destrucción.
+            // NO TOCAMOS NINGÚN CÓDIGO DE ATRACCIÓN AQUÍ.
+            item.AttemptCollection(this); 
         }
-
     }
 
     // --- LÓGICA DE COLECCIÓN ---

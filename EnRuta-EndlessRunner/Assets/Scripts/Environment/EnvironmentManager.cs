@@ -5,13 +5,13 @@ public class EnvironmentManager : MonoBehaviour
 {
     [Header("References")]
     public Transform player;
-    public List<EnvironmentSegment> segmentPrefabs; // prefabs must have EnvironmentSegment component
+    public List<EnvironmentSegment> segmentPrefabs;
+    public ObjectSpawner objectSpawner;
 
     [Header("Spawn control")]
     public int initialSegments = 3;
-    public float initialSpawnAhead = 20f;    // first segment start position relative to player.z
-    public float safeSpawnDistance = 30f;    // ensure spawned segment is at least this far ahead of player
-    public float extraSpacing = 0.1f;        // tiny extra gap if needed
+    public float safeSpawnDistance = 30f;
+    public float extraSpacing = 0.1f;
 
     private Queue<EnvironmentSegment> active = new Queue<EnvironmentSegment>();
     private float nextSpawnZ;
@@ -19,46 +19,44 @@ public class EnvironmentManager : MonoBehaviour
 
     void Start()
     {
-        if (player == null) Debug.LogError("[EnvironmentManager] Asigna Player.");
-        if (segmentPrefabs == null || segmentPrefabs.Count == 0) Debug.LogError("[EnvironmentManager] Asigna segmentPrefabs.");
+        if (player == null) { Debug.LogError("[EnvironmentManager] Falta referencia al jugador."); return; }
+        if (segmentPrefabs == null || segmentPrefabs.Count == 0) { Debug.LogError("[EnvironmentManager] No hay prefabs de segmentos."); return; }
+        if (objectSpawner == null) { Debug.LogError("[EnvironmentManager] Falta ObjectSpawner."); return; }
 
-        nextSpawnZ = player != null ? player.position.z + initialSpawnAhead : 0f;
+        // Inicio justo donde está el jugador
+        nextSpawnZ = player.position.z;
 
-        for (int i = 0; i < initialSegments; i++) SpawnSegment(initial: true);
+        for (int i = 0; i < initialSegments; i++)
+            SpawnSegment(initial: true);
 
         initialized = true;
     }
 
     void Update()
     {
-        if (!initialized || player == null) return;
+        if (!initialized) return;
 
-        // Ensure there is always next segment far enough ahead
         EnvironmentSegment last = active.Count > 0 ? active.ToArray()[active.Count - 1] : null;
+
         if (last != null)
         {
-            float lastEndZ = last.transform.position.z + last.GetSegmentLength();
-            if (lastEndZ < player.position.z + safeSpawnDistance)
+            if (player.position.z + safeSpawnDistance > last.transform.position.z)
                 SpawnSegment();
         }
 
-        // Destroy first only when player passed half of second
         if (active.Count >= 2)
         {
             EnvironmentSegment[] arr = active.ToArray();
             EnvironmentSegment first = arr[0];
             EnvironmentSegment second = arr[1];
 
-            if (first != null && second != null)
+            float secondMidZ = second.transform.position.z + second.GetSegmentLength() * 0.5f;
+
+            if (player.position.z > secondMidZ)
             {
-                float secondMid = second.transform.position.z + second.GetSegmentLength() * 0.5f;
-                if (player.position.z > secondMid)
-                {
-                    // clean spawned children (safe) and destroy
-                    first.ClearSpawned();
-                    Destroy(first.gameObject);
-                    active.Dequeue();
-                }
+                first.ClearObjects();
+                Destroy(first.gameObject);
+                active.Dequeue();
             }
         }
     }
@@ -66,27 +64,17 @@ public class EnvironmentManager : MonoBehaviour
     void SpawnSegment(bool initial = false)
     {
         EnvironmentSegment prefab = segmentPrefabs[Random.Range(0, segmentPrefabs.Count)];
-        if (prefab == null) return;
 
         float spawnZ = nextSpawnZ;
-        if (!initial && player != null)
-            spawnZ = Mathf.Max(nextSpawnZ, player.position.z + safeSpawnDistance);
 
-        Vector3 spawnPos = new Vector3(0f, 0f, spawnZ);
-        EnvironmentSegment inst = Instantiate(prefab, spawnPos, Quaternion.identity);
+        Vector3 pos = new Vector3(0f, 0f, spawnZ);
+        EnvironmentSegment inst = Instantiate(prefab, pos, Quaternion.identity);
 
-        // Add MoveBack to entire segment so children move automatically with it
-        MoveBack mb = inst.GetComponent<MoveBack>();
-        if (mb == null)
-        {
-            mb = inst.gameObject.AddComponent<MoveBack>();
-            mb.useGlobalSpeed = true;
-        }
+        objectSpawner.PopulateSegment(inst);
 
         float len = inst.GetSegmentLength();
-        if (len <= 0f) len = inst.GetSegmentLength(); // ensure cached
-
         nextSpawnZ = spawnZ + len + extraSpacing;
+
         active.Enqueue(inst);
     }
 }

@@ -9,6 +9,7 @@ TagManager:
   - Trigger
   - Ground
   - PowerUp
+  - Collectables
   layers:
   - Default
   - TransparentFX
