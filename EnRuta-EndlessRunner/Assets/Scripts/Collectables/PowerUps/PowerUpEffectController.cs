@@ -5,12 +5,12 @@ using System.Collections.Generic; // Necesario para guardar los objetos a atraer
 public class PowerUpEffectController : MonoBehaviour
 {
     [Header("Componentes de Power-Up")]
-    // Collider del Player que define el radio de atracción del imán.
+    // Collider del Player que define el radio de atracciÃ³n del imÃ¡n.
     public SphereCollider magnetAttractionCollider; 
 
     [HideInInspector] public bool isMagnetActive = false;
     
-    // Lista de objetos de BASURA que están dentro del radio del imán.
+    // Lista de objetos de BASURA que estÃ¡n dentro del radio del imÃ¡n.
     private List<GameObject> attractableObjects = new List<GameObject>();
 
     private PlayerController player;
@@ -18,7 +18,7 @@ public class PowerUpEffectController : MonoBehaviour
     private Coroutine magnetCoroutine;
 
     [Header("Magnet Movement")]
-    // AUMENTADO DE 1000f a 2500f para un efecto de atracción más dramático.
+    // AUMENTADO DE 1000f a 2500f para un efecto de atracciÃ³n mÃ¡s dramÃ¡tico.
     public float attractionSpeed = 2500f; 
     public float collectionHeightOffset = 1.0f;
 
@@ -39,10 +39,10 @@ public class PowerUpEffectController : MonoBehaviour
     /// </summary>
     void Update()
     {
-        // Solo ejecutar si el imán está activo.
+        // Solo ejecutar si el imÃ¡n estÃ¡ activo.
         if (!isMagnetActive) return;
 
-        // Iteración inversa para poder eliminar objetos de la lista mientras iteramos.
+        // IteraciÃ³n inversa para poder eliminar objetos de la lista mientras iteramos.
         for (int i = attractableObjects.Count - 1; i >= 0; i--)
         {
             GameObject obj = attractableObjects[i];
@@ -54,19 +54,19 @@ public class PowerUpEffectController : MonoBehaviour
                 continue;
             }
 
-            // Mover el objeto hacia la posición del jugador
+            // Mover el objeto hacia la posiciÃ³n del jugador
             Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
             // Se usa MoveTowards para una velocidad constante, lo cual se siente muy potente.
             obj.transform.position = Vector3.MoveTowards(obj.transform.position, targetPosition, attractionSpeed * Time.deltaTime);
             
-            // Recolección por proximidad (cuando llegan al cuerpo del jugador)
+            // RecolecciÃ³n por proximidad (cuando llegan al cuerpo del jugador)
             float distance = Vector3.Distance(obj.transform.position, targetPosition);
             if (distance < 0.5f)
             {
                 Collectable collectable = obj.GetComponent<Collectable>();
                 if (collectable != null)
                 {
-                    // Recolección directa, ya que ha sido atraído por el imán
+                    // RecolecciÃ³n directa, ya que ha sido atraÃ­do por el imÃ¡n
                     player.ProcessCollectable(collectable.data);
                 }
                 Destroy(obj);
@@ -76,11 +76,11 @@ public class PowerUpEffectController : MonoBehaviour
     }
 
     /// <summary>
-    /// Detecta objetos que entran al radio del imán (magnetAttractionCollider).
+    /// Detecta objetos que entran al radio del imÃ¡n (magnetAttractionCollider).
     /// </summary>
     void OnTriggerEnter(Collider other)
     {
-        // Ignora si el imán no está activo o si el objeto es el propio jugador.
+        // Ignora si el imÃ¡n no estÃ¡ activo o si el objeto es el propio jugador.
         if (!isMagnetActive || other.gameObject == gameObject) return;
         
         Collectable collectable = other.GetComponent<Collectable>();
@@ -88,14 +88,14 @@ public class PowerUpEffectController : MonoBehaviour
         // Debe tener el script Collectable y sus datos.
         if (collectable == null || collectable.data == null) return;
         
-        // 1. VERIFICACIÓN CRÍTICA: Descartar PowerUps.
+        // 1. VERIFICACIÃN CRÃTICA: Descartar PowerUps.
         if (collectable.data.type == CollectableType.PowerUp)
         {
             Debug.Log($"[MAGNET IGNORE SUCCESS] PowerUp '{other.gameObject.name}' detectado correctamente como PowerUp. IGNORADO.");
             return; 
         }
         
-        // 2. Si es basura (y no está ya en la lista), lo añadimos para ser atraído por Update.
+        // 2. Si es basura (y no estÃ¡ ya en la lista), lo aÃ±adimos para ser atraÃ­do por Update.
         if (!attractableObjects.Contains(other.gameObject))
         {
             attractableObjects.Add(other.gameObject);
@@ -103,7 +103,7 @@ public class PowerUpEffectController : MonoBehaviour
     }
 
     /// <summary>
-    /// Método de limpieza llamado por Collectable.cs al ser recolectado por el cuerpo del jugador.
+    /// MÃ©todo de limpieza llamado por Collectable.cs al ser recolectado por el cuerpo del jugador.
     /// </summary>
     public void RemoveAttractableObject(GameObject obj)
     {
@@ -114,7 +114,7 @@ public class PowerUpEffectController : MonoBehaviour
     }
 
 
-    // --- LÓGICA DE EFECTOS ---
+    // --- LÃGICA DE EFECTOS ---
     public void ActivateSpeedBoost(float multiplier, float duration)
     {
         if (speedCoroutine != null) StopCoroutine(speedCoroutine);
