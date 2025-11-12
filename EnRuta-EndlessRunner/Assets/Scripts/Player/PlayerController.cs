@@ -21,11 +21,12 @@ public class PlayerController : MonoBehaviour
     private CapsuleCollider playerCollider;
     // -------------------------------------------
 
-    [Header("Inventario y Estadísticas")]
-    public int totalGarbage = 0;
-    public int plasticCount = 0;
-    public int glassCount = 0;
-    public int cardboardCount = 0;
+    // 🛑 ELIMINADAS VARIABLES DE INVENTARIO (Delegadas a ScoreManager)
+    // [Header("Inventario y Estadísticas")]
+    // public int totalGarbage = 0;
+    // public int plasticCount = 0;
+    // public int glassCount = 0;
+    // public int cardboardCount = 0;
 
     // Variables de estado
     private bool isGrounded = true;
@@ -61,7 +62,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // Esto es lo que causaba el fallo de Salto/Deslizamiento
             Debug.LogError("FATAL: SlideHandler.cs no está adjunto. Deslizamiento y Salto fallarán.");
         }
 
@@ -149,39 +149,36 @@ public class PlayerController : MonoBehaviour
 
         if (item != null)
         {
-            // DELEGACIÓN: Llamamos al ítem para que GESTIONE la recolección y la destrucción.
-            // NO TOCAMOS NINGÚN CÓDIGO DE ATRACCIÓN AQUÍ.
-            item.AttemptCollection(this); 
+            ProcessCollectable(item.data);
+            return;
         }
+
     }
 
-    // --- LÓGICA DE COLECCIÓN ---
+    // --- LÓGICA DE COLECCIÓN (DELEGADA) ---
     public void ProcessCollectable(CollectableData data)
     {
-        switch (data.type)
+        // 1. Lógica de Power-Up (Delegada al Strategy y al PowerUpEffectController)
+        if (data.type == CollectableType.PowerUp)
         {
-            case CollectableType.GeneralGarbage:
-                totalGarbage += data.baseValue;
-                break;
-            case CollectableType.Recyclable:
-                ProcessRecyclable(data.collectableName, data.baseValue);
-                break;
-            case CollectableType.PowerUp:
-                if (data.powerUpEffect != null && powerUpEffects != null)
-                {
-                    // DELEGA la activación al PowerUpEffectController
-                    data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
-                }
-                break;
+            if (data.powerUpEffect != null && powerUpEffects != null)
+            {
+                
+                // 'powerUpEffects' es de tipo PowerUpEffectController, que es lo que espera el contrato.
+                data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
+            }
         }
+
+        // 2. Lógica de Inventario (DELEGADA COMPLETAMENTE a ScoreManager, Tarea 2.1)
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.AddToInventory(data.collectableName, data.baseValue, data.type);
+        }
+
+        // Destrucción del objeto (pendiente de tu lógica final en Collectable.cs)
+        // ...
     }
 
-    private void ProcessRecyclable(string name, int value)
-    {
-        if (name.Contains("Plástico")) plasticCount += value;
-        else if (name.Contains("Vidrio")) glassCount += value;
-        else if (name.Contains("Cartón")) cardboardCount += value;
-    }
 
     private void Jump()
     {
@@ -214,6 +211,6 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.EndGame();
         }
 
-        Debug.Log("¡GAME OVER! - Evento Global Emitido por Player.");
+        Debug.Log("¡GAME OVER!");
     }
 }
