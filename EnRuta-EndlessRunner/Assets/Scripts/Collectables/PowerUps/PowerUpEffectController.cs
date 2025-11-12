@@ -4,13 +4,13 @@ using System.Collections;
 public class PowerUpEffectController : MonoBehaviour
 {
     [Header("Componentes de Power-Up")]
-    [Tooltip("El SphereCollider que se usará para detectar ítems para el imán. Debe ser un Trigger.")]
+    [Tooltip("El SphereCollider que se usarï¿½ para detectar ï¿½tems para el imï¿½n. Debe ser un Trigger.")]
     public SphereCollider magnetAttractionCollider;
 
-    // Propiedades de estado para ser leídas por Collectable.cs
+    // Propiedades de estado para ser leï¿½das por Collectable.cs
     [HideInInspector] public bool isMagnetActive = false;
 
-    // FIX: Propiedad pública de SOLO LECTURA para que Collectable.cs la lea.
+    // FIX: Propiedad pï¿½blica de SOLO LECTURA para que Collectable.cs la lea.
     private float _currentAttractRadius = 0f;
     public float CurrentAttractRadius => _currentAttractRadius;
 
@@ -24,14 +24,14 @@ public class PowerUpEffectController : MonoBehaviour
         player = GetComponent<PlayerController>();
         if (player == null) Debug.LogError("PowerUpEffectController requiere un PlayerController en el mismo objeto.");
 
-        // Inicializar el collider del imán desactivado
+        // Inicializar el collider del imï¿½n desactivado
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.enabled = false;
         }
     }
 
-    // --- LÓGICA DE VELOCIDAD/RELENTIZACIÓN (Target del Strategy) ---
+    // --- Lï¿½GICA DE VELOCIDAD/RELENTIZACIï¿½N (Target del Strategy) ---
     /// <summary>
     /// Activa el efecto de velocidad, deteniendo cualquier efecto previo para reiniciar el tiempo.
     /// </summary>
@@ -45,7 +45,7 @@ public class PowerUpEffectController : MonoBehaviour
     private IEnumerator SpeedBoostRoutine(float multiplier, float duration)
     {
         Debug.Log("Power-Up Velocidad Activado.");
-        // Modifica la variable LEÍDA por el PlayerController en FixedUpdate
+        // Modifica la variable LEï¿½DA por el PlayerController en FixedUpdate
         player.currentSpeedMultiplier = multiplier;
 
         yield return new WaitForSeconds(duration);
@@ -55,9 +55,9 @@ public class PowerUpEffectController : MonoBehaviour
         Debug.Log("Power-Up Velocidad Desactivado.");
     }
 
-    // --- LÓGICA DEL IMÁN (Target del Strategy) ---
+    // --- Lï¿½GICA DEL IMï¿½N (Target del Strategy) ---
     /// <summary>
-    /// Activa el imán para atraer coleccionables.
+    /// Activa el imï¿½n para atraer coleccionables.
     /// </summary>
     public void ActivateMagnet(float radius, float duration)
     {
@@ -68,14 +68,14 @@ public class PowerUpEffectController : MonoBehaviour
 
     private IEnumerator MagnetRoutine(float radius, float duration)
     {
-        Debug.Log("Power-Up Imán Activado.");
+        Debug.Log("Power-Up Imï¿½n Activado.");
         isMagnetActive = true;
         _currentAttractRadius = radius;
 
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.radius = radius;
-            magnetAttractionCollider.enabled = true; // Activa el detector de rango de atracción
+            magnetAttractionCollider.enabled = true; // Activa el detector de rango de atracciï¿½n
         }
 
         yield return new WaitForSeconds(duration);
@@ -87,6 +87,6 @@ public class PowerUpEffectController : MonoBehaviour
             magnetAttractionCollider.enabled = false; // Desactiva el detector
         }
         magnetCoroutine = null;
-        Debug.Log("Power-Up Imán Desactivado.");
+        Debug.Log("Power-Up Imï¿½n Desactivado.");
     }
 }

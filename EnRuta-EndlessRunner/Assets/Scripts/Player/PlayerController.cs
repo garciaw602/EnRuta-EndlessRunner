@@ -62,7 +62,6 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-
             Debug.LogError("FATAL: SlideHandler.cs no está adjunto. Deslizamiento y Salto fallarán.");
         }
 

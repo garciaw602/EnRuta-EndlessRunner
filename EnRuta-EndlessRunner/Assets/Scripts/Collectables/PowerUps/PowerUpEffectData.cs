@@ -6,7 +6,7 @@ using UnityEngine;
 // Debe ser 'abstract' porque no queremos crear instancias directas de este ScriptableObject.
 public abstract class PowerUpEffectData : ScriptableObject, IPowerUpEffect
 {
-    [Tooltip("Duración estándar del efecto si no se especifica en la implementación concreta.")]
+    [Tooltip("Duraciï¿½n estï¿½ndar del efecto si no se especifica en la implementaciï¿½n concreta.")]
     public float duration = 5f;
 
     
