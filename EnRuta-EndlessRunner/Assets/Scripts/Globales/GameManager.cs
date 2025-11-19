@@ -1,4 +1,4 @@
-using UnityEngine;
+锘縰sing UnityEngine;
 using System;
 using System.Collections; // Necesario para usar Coroutines
 
@@ -9,21 +9,21 @@ public class GameManager : MonoBehaviour
 
     // 2. Evento Global (Observer Pattern)
     public event Action OnGameOver;
-    public event Action OnScoreUpdated;
+    public event Action OnScoreUpdated; 
     public event Action OnGameStart;
 
     // 3. Estado del Juego
     public bool IsGameOver { get; private set; } = false;
 
-    // 4. Configuraci髇 de Pausa para la Animaci髇
-    [Header("Configuraci髇 de Pausa")]
-    [Tooltip("Tiempo en segundos que espera el juego antes de pausarse (para que la animaci髇 de muerte se vea).")]
+    // 4. Configuraci贸n de Pausa para la Animaci贸n
+    [Header("Configuraci贸n de Pausa")]
+    [Tooltip("Tiempo en segundos que espera el juego antes de pausarse (para que la animaci贸n de muerte se vea).")]
     public float timeBeforePauseOnDeath = 0.8f; // Valor inicial recomendado: 0.8 segundos
 
 
     void Awake()
     {
-        // Implementaci髇 Est醤dar de Singleton
+        // Implementaci贸n Est谩ndar de Singleton
         if (Instance == null)
         {
             Instance = this;
@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Llamado por PlayerController.cs al chocar con un Obst醕ulo.
+    /// Llamado por PlayerController.cs al chocar con un Obst谩culo.
     /// Inicia el proceso de fin de juego, notifica y luego pausa usando una coroutine.
     /// </summary>
     public void EndGame()
@@ -47,32 +47,43 @@ public class GameManager : MonoBehaviour
 
         IsGameOver = true;
 
-        // Inicia la corrutina que maneja el retraso para la animaci髇.
+        // Inicia la corrutina que maneja el retraso para la animaci贸n.
         StartCoroutine(EndGameRoutine());
     }
 
     /// <summary>
-    /// Corrutina para pausar el juego despu閟 de un tiempo para permitir que la animaci髇 se reproduzca.
+    /// M茅todo p煤blico para que otras clases (como ScoreManager) puedan notificar
+    /// que la puntuaci贸n ha cambiado. SOLUCI脫N al ERROR CS0070.
+    /// </summary>
+    public void NotifyScoreUpdated()
+    {
+        // Se invoca el evento desde DENTRO de la clase donde fue declarado.
+        OnScoreUpdated?.Invoke();
+        Debug.Log("EVENTO EMITIDO: OnScoreUpdated fue invocado.");
+    }
+
+    /// <summary>
+    /// Corrutina para pausar el juego despu茅s de un tiempo para permitir que la animaci贸n se reproduzca.
     /// </summary>
     private IEnumerator EndGameRoutine()
     {
         // 1. Notifica a los suscriptores (debe ir antes de la pausa para que reaccionen a tiempo)
         OnGameOver?.Invoke();
 
-        Debug.Log("EVENTO: OnGameOver emitido. Esperando " + timeBeforePauseOnDeath + " segundos para la animaci髇...");
+        Debug.Log("EVENTO: OnGameOver emitido. Esperando " + timeBeforePauseOnDeath + " segundos para la animaci贸n...");
 
-        // 2. Esperar el tiempo definido para que la animaci髇 de muerte se ejecute.
+        // 2. Esperar el tiempo definido para que la animaci贸n de muerte se ejecute.
         yield return new WaitForSeconds(timeBeforePauseOnDeath);
 
         // 3. Pausa el juego
         Time.timeScale = 0f;
 
-        Debug.Log("VERIFICACI覰: Juego Pausado. Time.timeScale actual es: " + Time.timeScale);
+        Debug.Log("VERIFICACI脫N: Juego Pausado. Time.timeScale actual es: " + Time.timeScale);
     }
 
 
     /// <summary>
-    /// Funci髇 para reiniciar el estado del juego (鷗il para empezar una nueva partida).
+    /// Funci贸n para reiniciar el estado del juego (煤til para empezar una nueva partida).
     /// </summary>
     public void ResetGame()
     {

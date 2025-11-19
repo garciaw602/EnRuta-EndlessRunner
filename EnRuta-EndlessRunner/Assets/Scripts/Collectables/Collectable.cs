@@ -3,71 +3,61 @@
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {
-    // Datos definidos por el Scriptable Object (SO)
+    [Tooltip("Arrastra aquí el archivo CollectableData (.asset)")]
     public CollectableData data;
 
-    // Referencia al controlador de efectos del jugador para la limpieza del imán.
-    private PowerUpEffectController powerUpEffects; 
-    
+    private PowerUpEffectController powerUpEffects;
+
     void Start()
     {
-        if (data == null)
-        {
-            Debug.LogError($"Collectable en {gameObject.name} no tiene asignado CollectableData. ¡Esto causará fallos!");
-        }
         
-        // Búsqueda de la referencia del PlayerController
-        GameObject playerGO = GameObject.FindWithTag("Player");
-        if (playerGO != null)
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb == null)
         {
-            powerUpEffects = playerGO.GetComponent<PowerUpEffectController>();
-        }
-        else
-        {
-            Debug.LogError("Collectable no encontró el objeto 'Player'. ¿Tiene la etiqueta 'Player'?");
+            rb = gameObject.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
         }
 
-        // Asegura que el Collider sea Trigger para que el jugador pueda atravesarlo y recolectarlo.
-        Collider col = GetComponent<Collider>();
-        if (col != null)
-        {
-            col.isTrigger = true;
-        }
+        // Asegurar que es Trigger para que el jugador lo atraviese
+        GetComponent<Collider>().isTrigger = true;
     }
 
-    // EL MÉTODO Update() FUE ELIMINADO para centralizar el movimiento en PowerUpEffectController.
-
     /// <summary>
-    /// Intenta recolectar el objeto, llamado por el PlayerController al chocar con su Collider de cuerpo.
+    /// Maneja la recolección por CONTACTO DIRECTO (Jugador toca el objeto).
     /// </summary>
-    public void AttemptCollection(PlayerController pc)
+    private void OnTriggerEnter(Collider other)
     {
-        if (data == null) return;
+        PlayerController player = other.GetComponent<PlayerController>();
 
-        // Obtiene el estado actual del imán.
-        PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
-        bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
-
-        // LÓGICA DE RECOLECCIÓN SIMPLIFICADA Y CORREGIDA PARA ANIMACIÓN:
-        // Solo permitimos la recolección por contacto (el cuerpo del jugador) si el imán NO está activo.
-        // Si el imán está activo, la recolección la gestionará el PowerUpEffectController.Update(), 
-        // lo que permite ver la animación de atracción.
-        bool shouldCollect = !isMagnetActive;
-
-
-        if (shouldCollect)
+        if (player != null)
         {
-            // LIMPIEZA DE SEGURIDAD: Retira el objeto de la lista de atracción del imán (si estaba).
-            if (powerUpEffects != null)
+            if (powerUpEffects == null) powerUpEffects = player.GetComponent<PowerUpEffectController>();
+
+            bool isMagnetActive = (powerUpEffects != null && powerUpEffects.isMagnetActive);
+
+            
+            // Solo recolectamos si el imán NO está activo.
+            // Si el imán está activo, la Basura será atraída y el PowerUp se queda.
+            if (!isMagnetActive)
             {
-                powerUpEffects.RemoveAttractableObject(gameObject);
+                // Si el imán está inactivo, se recoge CUALQUIER COSA por contacto.
+
+               
+                if (powerUpEffects != null)
+                {
+                    powerUpEffects.RemoveFromMagnetList(gameObject);
+                }
+
+                // Procesar la lógica (Activar PowerUp o Sumar Basura)
+                player.ProcessCollectable(data);
+
+                // Destruir el objeto visual (¡Se recoge!)
+                Destroy(gameObject);
             }
 
-            pc.ProcessCollectable(data); // Aplica el efecto o suma el puntaje
-            Destroy(gameObject); // Destruye el objeto recolectado
+            // Si el imán está activo:
+            // - Basura: El código salta esta condición y el objeto espera ser atraído.
+            // - PowerUp: El código salta esta condición y el PowerUp se queda en escena, permitiendo que el jugador lo traspase.
         }
-        
-        // Si el imán está activo, la función termina aquí. El objeto es movido y recolectado
-        // por PowerUpEffectController.Update() después de ser animado.
     }
 }
