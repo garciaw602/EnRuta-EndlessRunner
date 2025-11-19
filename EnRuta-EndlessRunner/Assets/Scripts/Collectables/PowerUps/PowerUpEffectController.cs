@@ -1,92 +1,145 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PowerUpEffectController : MonoBehaviour
 {
     [Header("Componentes de Power-Up")]
-    [Tooltip("El SphereCollider que se usar� para detectar �tems para el im�n. Debe ser un Trigger.")]
     public SphereCollider magnetAttractionCollider;
 
-    // Propiedades de estado para ser le�das por Collectable.cs
     [HideInInspector] public bool isMagnetActive = false;
 
-    // FIX: Propiedad p�blica de SOLO LECTURA para que Collectable.cs la lea.
-    private float _currentAttractRadius = 0f;
-    public float CurrentAttractRadius => _currentAttractRadius;
+    // Lista de objetos que están siendo atraídos
+    private List<GameObject> attractableObjects = new List<GameObject>();
 
-    private PlayerController player; // Referencia para modificar la velocidad.
+    [Header("Configuración Imán")]
+    public float attractionSpeed = 2500f;
+    public float collectionHeightOffset = 1.0f;
+
+    private PlayerController player;
     private Coroutine speedCoroutine;
     private Coroutine magnetCoroutine;
 
     void Awake()
     {
-        // Obtiene la referencia al PlayerController para modificar currentSpeedMultiplier
         player = GetComponent<PlayerController>();
-        if (player == null) Debug.LogError("PowerUpEffectController requiere un PlayerController en el mismo objeto.");
+        if (player == null) Debug.LogError("PowerUpEffectController requiere un PlayerController.");
 
-        // Inicializar el collider del im�n desactivado
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.enabled = false;
+            magnetAttractionCollider.isTrigger = true;
         }
     }
 
-    // --- L�GICA DE VELOCIDAD/RELENTIZACI�N (Target del Strategy) ---
-    /// <summary>
-    /// Activa el efecto de velocidad, deteniendo cualquier efecto previo para reiniciar el tiempo.
-    /// </summary>
+    void Update()
+    {
+        if (!isMagnetActive) return;
+
+        // Iteramos al revés para poder eliminar objetos de la lista si se destruyen
+        for (int i = attractableObjects.Count - 1; i >= 0; i--)
+        {
+            GameObject obj = attractableObjects[i];
+
+            if (obj == null)
+            {
+                attractableObjects.RemoveAt(i);
+                continue;
+            }
+
+            // 1. Movimiento hacia el jugador
+            Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
+            obj.transform.position = Vector3.MoveTowards(obj.transform.position, targetPosition, attractionSpeed * Time.deltaTime);
+
+            // 2. Recolección automática por proximidad
+            float distance = Vector3.Distance(obj.transform.position, targetPosition);
+            if (distance < 0.5f)
+            {
+                Collectable collectable = obj.GetComponent<Collectable>();
+                if (collectable != null)
+                {
+                    player.ProcessCollectable(collectable.data);
+                }
+
+                Destroy(obj);
+                attractableObjects.RemoveAt(i);
+            }
+        }
+    }
+
+    // --- LÓGICA CRÍTICA DE FILTRADO ---
+    void OnTriggerEnter(Collider other)
+    {
+       
+
+        // 1. Chequeo básico
+        if (!isMagnetActive || other.gameObject == gameObject) return;
+
+        Collectable collectable = other.GetComponent<Collectable>();
+
+        if (collectable != null && collectable.data != null)
+        {
+            // 2. FILTRO DE POWERUP: Si es un PowerUp, debemos ignorarlo.
+            if (collectable.data.type == CollectableType.PowerUp)
+            {
+                
+                return; // ¡Salimos del método, NO lo añadimos a la lista!
+            }
+
+            // 3. LÓGICA DE ATRACCIÓN: Si llegamos aquí, NO es un PowerUp (es basura/reciclaje)
+            if (!attractableObjects.Contains(other.gameObject))
+            {
+                attractableObjects.Add(other.gameObject);
+
+               
+            }
+        }
+    }
+
+    // --- MÉTODOS DE ACTIVACIÓN (Speed Boost) ---
     public void ActivateSpeedBoost(float multiplier, float duration)
     {
-        // Detiene la corrutina si ya hay una activa para reiniciar el tiempo
         if (speedCoroutine != null) StopCoroutine(speedCoroutine);
         speedCoroutine = StartCoroutine(SpeedBoostRoutine(multiplier, duration));
     }
 
     private IEnumerator SpeedBoostRoutine(float multiplier, float duration)
     {
-        Debug.Log("Power-Up Velocidad Activado.");
-        // Modifica la variable LE�DA por el PlayerController en FixedUpdate
         player.currentSpeedMultiplier = multiplier;
-
         yield return new WaitForSeconds(duration);
-
-        player.currentSpeedMultiplier = 1f; // Resetea a la velocidad base
+        player.currentSpeedMultiplier = 1f;
         speedCoroutine = null;
-        Debug.Log("Power-Up Velocidad Desactivado.");
     }
 
-    // --- L�GICA DEL IM�N (Target del Strategy) ---
-    /// <summary>
-    /// Activa el im�n para atraer coleccionables.
-    /// </summary>
+    // --- MÉTODOS DE ACTIVACIÓN (Magnet) ---
     public void ActivateMagnet(float radius, float duration)
     {
-        // Detiene la corrutina si ya hay una activa para reiniciar el tiempo
         if (magnetCoroutine != null) StopCoroutine(magnetCoroutine);
         magnetCoroutine = StartCoroutine(MagnetRoutine(radius, duration));
     }
 
     private IEnumerator MagnetRoutine(float radius, float duration)
     {
-        Debug.Log("Power-Up Im�n Activado.");
         isMagnetActive = true;
-        _currentAttractRadius = radius;
-
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.radius = radius;
-            magnetAttractionCollider.enabled = true; // Activa el detector de rango de atracci�n
+            magnetAttractionCollider.enabled = true;
         }
 
         yield return new WaitForSeconds(duration);
 
+        attractableObjects.Clear();
         isMagnetActive = false;
-        _currentAttractRadius = 0f;
-        if (magnetAttractionCollider != null)
-        {
-            magnetAttractionCollider.enabled = false; // Desactiva el detector
-        }
+        if (magnetAttractionCollider != null) magnetAttractionCollider.enabled = false;
         magnetCoroutine = null;
-        Debug.Log("Power-Up Im�n Desactivado.");
+    }
+
+    public void RemoveFromMagnetList(GameObject obj)
+    {
+        if (attractableObjects.Contains(obj))
+        {
+            attractableObjects.Remove(obj);
+        }
     }
 }

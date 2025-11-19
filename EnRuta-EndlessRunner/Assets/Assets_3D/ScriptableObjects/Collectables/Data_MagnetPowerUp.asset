@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   collectableName: 
   type: 2
-  baseValue: 1
+  baseValue: 0
   powerUpEffect: {fileID: 11400000, guid: 5913bdcf8cdb3e94d848b62526ccf02f, type: 2}
