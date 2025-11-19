@@ -7,6 +7,9 @@ TagManager:
   - Obstaculo
   - Destroy
   - Trigger
+  - Ground
+  - PowerUp
+  - Collectables
   layers:
   - Default
   - TransparentFX

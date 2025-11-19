@@ -1,240 +1,148 @@
-using UnityEngine;
+ï»¿using UnityEngine;
+using System.Collections;
+using System;
 
-// Asegura que el script solo pueda existir si tiene un Rigidbody y un CapsuleCollider
-[RequireComponent(typeof(Rigidbody))]
-[RequireComponent(typeof(CapsuleCollider))]
 public class PlayerController : MonoBehaviour
 {
-    // --- COMPONENTES Y REFERENCIAS ---
+    [Header("ConfiguraciÃ³n de Movimiento Base")]
+    public float baseSpeed = 10f;
+    public float lateralSpeed = 5f;
+    public float jumpForce = 10f;
+    public float laneDistance = 4f;
 
-    [Header("Componentes de Animación")]
-    [Tooltip("Arrastra el componente Animator de tu modelo 3D aquí.")]
-    public Animator playerAnimator;
+    [HideInInspector] public float currentSpeedMultiplier = 1f;
 
-    // Conexión con el sistema de generación de niveles
-    [Header("Generador de Pista")]
-    [Tooltip("Arrastra el script TrackGenerator aquí para la generación modular.")]
-    public TrackGenerator generator; // <<-- NUEVA REFERENCIA PARA GENERACIÓN
-
+    // --- REFERENCIAS ---
+    private SlideHandler slideHandler;
+    private PowerUpEffectController powerUpEffects;
     private Rigidbody rb;
-    private CapsuleCollider capsuleCollider;
+    private Animator anim;
+    private CapsuleCollider playerCollider;
 
-    // --- VARIABLES DE MOVIMIENTO Y CARRIL ---
-
-    [Header("Velocidad y Carriles")]
-    public float forwardSpeed = 10f;
-    public float laneChangeSpeed = 15f;
-    public float laneDistance = 3f;
-
-    // Control de Carriles: 0=Izquierda, 1=Centro, 2=Derecha.
+    // Variables de estado
+    private bool isGrounded = true;
     private int currentLane = 1;
-    private float targetXPosition;
+    private bool isDead = false;
 
-    // --- VARIABLES DE SALTO Y DESLIZAMIENTO ---
-
-    [Header("Salto y Deslizamiento")]
-    public float jumpForce = 8f;
-    public float gravityModifier = 1.5f;
-    public float slideDuration = 1.0f;
-
-    // FSM: Banderas de estado
-    private bool isJumping = false;
-    private bool isSliding = false;
-
-    // Valores originales del Collider
-    private float originalColliderHeight;
-    private Vector3 originalColliderCenter;
-
-
-    // Start se llama una vez al inicio.
     void Start()
     {
-        // Obtener componentes.
         rb = GetComponent<Rigidbody>();
-        capsuleCollider = GetComponent<CapsuleCollider>();
+        anim = GetComponent<Animator>();
+        playerCollider = GetComponent<CapsuleCollider>();
+        slideHandler = GetComponent<SlideHandler>();
+        powerUpEffects = GetComponent<PowerUpEffectController>();
 
-        // Guardar valores originales del Collider.
-        if (capsuleCollider != null)
+        if (rb == null || playerCollider == null || anim == null)
         {
-            originalColliderHeight = capsuleCollider.height;
-            originalColliderCenter = capsuleCollider.center;
+            enabled = false;
+            return;
         }
 
-        // Aplicar gravedad personalizada.
-        Physics.gravity *= gravityModifier;
-
-        // Iniciar la animación de correr.
-        if (playerAnimator != null)
+        if (slideHandler != null)
         {
-            playerAnimator.SetBool("IsRunning", true);
+            slideHandler.Initialize(playerCollider, anim, playerCollider.height, playerCollider.center);
         }
+
+        anim.SetBool("IsRunning", true);
     }
 
-
-    // Update se llama en cada frame. 
     void Update()
     {
-        // Solo procesamos el Input si el script está habilitado (no muerto).
-        if (this.enabled)
-        {
-            HandleInput();
-        }
+        bool canMove = !isDead && (GameManager.Instance != null && !GameManager.Instance.IsGameOver);
+        bool canJumpOrSlide = isGrounded && slideHandler != null && !slideHandler.IsSliding;
+
+        if (!canMove) return;
+
+        // Inputs de Movimiento
+        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W)) && canJumpOrSlide)
+            Jump();
+
+        if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) && canJumpOrSlide)
+            slideHandler.StartSlide();
+
+        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) MoveLane(1);
+        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow)) MoveLane(-1);
     }
 
-
-    // FixedUpdate se llama a intervalos fijos. Ideal para Físicas (Rigidbody).
     void FixedUpdate()
     {
-        // Solo movemos el Player si el script está habilitado (no muerto).
-        if (this.enabled)
+        if (isDead || (GameManager.Instance != null && GameManager.Instance.IsGameOver))
         {
-            MovePlayer();
+            rb.linearVelocity = Vector3.zero;
+            return;
         }
+
+        float finalSpeed = baseSpeed * currentSpeedMultiplier;
+        rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y, finalSpeed);
+
+        float targetX = (currentLane - 1) * laneDistance;
+        Vector3 targetPosition = new Vector3(targetX, transform.position.y, transform.position.z);
+        Vector3 newPosition = Vector3.Lerp(rb.position, targetPosition, Time.fixedDeltaTime * lateralSpeed);
+        rb.MovePosition(new Vector3(newPosition.x, rb.position.y, rb.position.z));
     }
 
-
-    // --- MANEJO DE INPUT (TECLAS) ---
-
-    private void HandleInput()
+    void OnCollisionEnter(Collision collision)
     {
-        // 1. Lógica de Cambio de Carril
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        if (collision.gameObject.CompareTag("Ground"))
         {
-            if (currentLane > 0) currentLane--;
+            isGrounded = true;
+            anim.SetBool("IsJumping", false);
         }
 
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        if (collision.gameObject.CompareTag("Obstaculo") && !isDead)
         {
-            if (currentLane < 2) currentLane++;
-        }
-
-        // 2. Salto (FSM: Transición a Jumping)
-        if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow)) && !isJumping && !isSliding)
-        {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-            isJumping = true;
-
-            if (playerAnimator != null)
-            {
-                playerAnimator.SetTrigger("Jump");
-            }
-        }
-
-        // 3. Deslizamiento (FSM: Transición a Sliding)
-        if ((Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow)) && !isJumping && !isSliding)
-        {
-            StartSliding();
-        }
-
-        targetXPosition = (currentLane - 1) * laneDistance;
-    }
-
-
-    // --- APLICACIÓN DEL MOVIMIENTO EN FIXEDUPDATE ---
-
-    private void MovePlayer()
-    {
-        // Avance constante (Z)
-        Vector3 forwardMovement = Vector3.forward * forwardSpeed * Time.fixedDeltaTime;
-
-        // Movimiento Lateral (X)
-        float newX = Mathf.Lerp(rb.position.x, targetXPosition, Time.fixedDeltaTime * laneChangeSpeed);
-
-        Vector3 finalPosition = new Vector3(newX, rb.position.y, rb.position.z + forwardMovement.z);
-
-        rb.MovePosition(finalPosition);
-    }
-
-
-    // --- MÉTODOS DE ESTADO DE ACCIÓN ---
-
-    private void StartSliding()
-    {
-        isSliding = true;
-
-        if (playerAnimator != null)
-        {
-            playerAnimator.SetTrigger("Slide");
-        }
-
-        // Ajuste de Collider para el Deslizamiento
-        capsuleCollider.height /= 2f;
-        Vector3 newCenter = new Vector3(originalColliderCenter.x, originalColliderCenter.y / 2f, originalColliderCenter.z);
-        capsuleCollider.center = newCenter;
-
-        Invoke("StopSliding", slideDuration);
-    }
-
-    private void StopSliding()
-    {
-        isSliding = false;
-
-        // Reestablecer Collider a sus valores originales
-        capsuleCollider.height = originalColliderHeight;
-        capsuleCollider.center = originalColliderCenter;
-    }
-
-    // --- DETECCIÓN DE COLISIÓN Y TRIGGERS ---
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        // 1. Lógica para finalizar el Salto (aterrizaje)
-        if (isJumping)
-        {
-            isJumping = false;
-        }
-
-        // 2. Lógica de Muerte: si choca con un obstáculo
-        // MUERE siempre que choque con el "Obstaculo"
-        if (collision.gameObject.CompareTag("Obstaculo"))
-        {
-            // Cancelamos el deslizamiento pendiente si choca durante el slide
-            CancelInvoke("StopSliding");
             Die();
         }
     }
 
-    // **NUEVO** Método para detectar Triggers (como el de aparición de pista)
-    private void OnTriggerEnter(Collider other)
+    // --- LÃ“GICA DE COLECCIÃ“N (CONEXIÃ“N CON SCOREMANAGER) ---
+    // Este mÃ©todo es el que recibe la llamada del ImÃ¡n o del choque directo.
+    public void ProcessCollectable(CollectableData data)
     {
-        // Lógica de Generación de Pista (Trigger al final del módulo)
-        if (other.CompareTag("Trigger") && generator != null)
+        // 1. LÃ³gica de Power-Up (Se queda aquÃ­ porque afecta al jugador)
+        if (data.type == CollectableType.PowerUp)
         {
-            // Llama al generador para instanciar el siguiente módulo.
-            generator.SpawnModule();
+            if (data.powerUpEffect != null && powerUpEffects != null)
+            {
+                data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
+            }
+            return;
+        }
 
-            // Destruye el trigger del módulo viejo para que no se dispare dos veces.
-            Destroy(other.gameObject);
+        // 2. LÃ³gica de PuntuaciÃ³n (SE DELEGA AL SCOREMANAGER)
+        
+        if (ScoreManager.Instance != null)
+        {
+            // Llamamos a AddToInventory tal como estÃ¡ definido en tu archivo ScoreManager.cs
+            ScoreManager.Instance.AddToInventory(data.collectableName, data.baseValue, data.type);
         }
     }
 
-
-    // --- MÉTODO: GESTIÓN DE MUERTE (ESTADO TERMINAL) ---
-
-    private void Die()
+    private void Jump()
     {
-        Debug.Log("Game Over: El jugador chocó con un obstáculo.");
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        isGrounded = false;
+        anim.SetBool("IsJumping", true);
+    }
 
-        // 1. Deshabilitar Controles (detener el input y movimiento)
-        this.enabled = false;
-
-        // Detener completamente la física del jugador
-        if (rb != null)
+    private void MoveLane(int direction)
+    {
+        int newLane = currentLane + direction;
+        if (newLane >= 0 && newLane <= 2)
         {
-            rb.linearVelocity = Vector3.zero;
-            rb.angularVelocity = Vector3.zero;
+            currentLane = newLane;
         }
+    }
 
-        // 2. Cancelar el deslizamiento pendiente (si lo hay)
-        CancelInvoke("StopSliding");
+    public void Die()
+    {
+        if (isDead) return;
+        isDead = true;
+        anim.SetTrigger("Die");
 
-        // 3. Activar Animación de Muerte
-        if (playerAnimator != null)
+        if (GameManager.Instance != null)
         {
-            playerAnimator.SetTrigger("Die");
+            GameManager.Instance.EndGame();
         }
-
-        // 4. (Futuro) Llamar al Game Manager Singleton
-        // if (GameManager.Instance != null) { GameManager.Instance.EndGame(); }
     }
 }
