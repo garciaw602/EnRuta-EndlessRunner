@@ -1,94 +1,96 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections; // Necesario para usar Coroutines
+using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
-    // 1. Instancia Singleton: Propiedad de solo lectura para acceso global.
+    // 1. Instancia Singleton
     public static GameManager Instance { get; private set; }
 
-    // 2. Evento Global (Observer Pattern)
-    public event Action OnGameOver;
-    public event Action OnScoreUpdated; 
-    public event Action OnGameStart;
+    // 2. Eventos Globales (Observer Pattern)
+    public event Action OnGameOver;       // Evento para notificar el fin del juego.
+    public event Action OnScoreUpdated;   // Evento para notificar que la UI de puntajes debe refrescarse.
+    public event Action OnGameStart;      // Evento para notificar el inicio.
 
     // 3. Estado del Juego
     public bool IsGameOver { get; private set; } = false;
 
-    // 4. Configuración de Pausa para la Animación
+    // 4. Temporizador de Supervivencia
+    private float _survivalTime = 0f;
+    public float SurvivalTime => _survivalTime;
+
     [Header("Configuración de Pausa")]
-    [Tooltip("Tiempo en segundos que espera el juego antes de pausarse (para que la animación de muerte se vea).")]
-    public float timeBeforePauseOnDeath = 0.8f; // Valor inicial recomendado: 0.8 segundos
+    public float timeBeforePauseOnDeath = 0.8f;
 
 
     void Awake()
     {
-        // Implementación Estándar de Singleton
         if (Instance == null)
         {
             Instance = this;
-            // DontDestroyOnLoad(gameObject); // Opcional
         }
         else
         {
             Destroy(gameObject);
         }
+        // Asegura que el juego NO esté pausado al inicio
+        Time.timeScale = 1f;
+    }
 
-        Debug.Log("DEBUG: GameManager Singleton inicializado correctamente.");
+    void Start()
+    {
+        // Se emite el evento al iniciar (para que sistemas como EnvironmentManager y UIManager reaccionen si es necesario)
+        OnGameStart?.Invoke();
+    }
+
+    void Update()
+    {
+        if (IsGameOver) return;
+        _survivalTime += Time.deltaTime;
     }
 
     /// <summary>
     /// Llamado por PlayerController.cs al chocar con un Obstáculo.
-    /// Inicia el proceso de fin de juego, notifica y luego pausa usando una coroutine.
+    /// Inicia el proceso de fin de juego y notifica a la UI/sistemas.
     /// </summary>
-    public void EndGame()
+    public void GameOver()
     {
         if (IsGameOver) return;
 
         IsGameOver = true;
-
-        // Inicia la corrutina que maneja el retraso para la animación.
+        // La única llamada al fin de juego es aquí:
         StartCoroutine(EndGameRoutine());
     }
 
     /// <summary>
-    /// Método público para que otras clases (como ScoreManager) puedan notificar
-    /// que la puntuación ha cambiado. SOLUCIÓN al ERROR CS0070.
+    /// Método público llamado por ScoreManager para notificar que la UI debe actualizarse.
     /// </summary>
     public void NotifyScoreUpdated()
     {
-        // Se invoca el evento desde DENTRO de la clase donde fue declarado.
+        // Solo el GameManager puede invocar el evento.
         OnScoreUpdated?.Invoke();
-        Debug.Log("EVENTO EMITIDO: OnScoreUpdated fue invocado.");
     }
 
-    /// <summary>
-    /// Corrutina para pausar el juego después de un tiempo para permitir que la animación se reproduzca.
-    /// </summary>
     private IEnumerator EndGameRoutine()
     {
-        // 1. Notifica a los suscriptores (debe ir antes de la pausa para que reaccionen a tiempo)
+        // 1. Notifica a los suscriptores (ej: UIManager activa el panel)
         OnGameOver?.Invoke();
 
-        Debug.Log("EVENTO: OnGameOver emitido. Esperando " + timeBeforePauseOnDeath + " segundos para la animación...");
-
-        // 2. Esperar el tiempo definido para que la animación de muerte se ejecute.
         yield return new WaitForSeconds(timeBeforePauseOnDeath);
 
         // 3. Pausa el juego
         Time.timeScale = 0f;
-
-        Debug.Log("VERIFICACIÓN: Juego Pausado. Time.timeScale actual es: " + Time.timeScale);
     }
-
-
-    /// <summary>
-    /// Función para reiniciar el estado del juego (útil para empezar una nueva partida).
-    /// </summary>
-    public void ResetGame()
+    public void RestartGame()
     {
-        IsGameOver = false;
-        Time.timeScale = 1f; // Reanuda el tiempo
-        Debug.Log("DEBUG: GameManager reseteado. Juego reanudado.");
+        // 1. Despausa el juego (importante, ya que GameOver lo pausó a 0)
+        Time.timeScale = 1f;
+
+        // 2. Obtiene el índice de la escena actual
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+
+        // 3. Carga la escena por su índice, reiniciando el juego
+        SceneManager.LoadScene(currentSceneIndex);
     }
 }

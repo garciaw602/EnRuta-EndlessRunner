@@ -10,7 +10,7 @@ public class PowerUpEffectController : MonoBehaviour
     [HideInInspector] public bool isMagnetActive = false;
 
     // Lista de objetos que están siendo atraídos
-    private List<GameObject> attractableObjects = new List<GameObject>();
+    [HideInInspector] public List<GameObject> attractableObjects = new List<GameObject>(); // Ya estaba, solo asegúrate que la lista esté expuesta si el MagnetDetector está en otro script.
 
     [Header("Configuración Imán")]
     public float attractionSpeed = 2500f;
@@ -68,33 +68,7 @@ public class PowerUpEffectController : MonoBehaviour
     }
 
     // --- LÓGICA CRÍTICA DE FILTRADO ---
-    void OnTriggerEnter(Collider other)
-    {
-       
-
-        // 1. Chequeo básico
-        if (!isMagnetActive || other.gameObject == gameObject) return;
-
-        Collectable collectable = other.GetComponent<Collectable>();
-
-        if (collectable != null && collectable.data != null)
-        {
-            // 2. FILTRO DE POWERUP: Si es un PowerUp, debemos ignorarlo.
-            if (collectable.data.type == CollectableType.PowerUp)
-            {
-                
-                return; // ¡Salimos del método, NO lo añadimos a la lista!
-            }
-
-            // 3. LÓGICA DE ATRACCIÓN: Si llegamos aquí, NO es un PowerUp (es basura/reciclaje)
-            if (!attractableObjects.Contains(other.gameObject))
-            {
-                attractableObjects.Add(other.gameObject);
-
-               
-            }
-        }
-    }
+  
 
     // --- MÉTODOS DE ACTIVACIÓN (Speed Boost) ---
     public void ActivateSpeedBoost(float multiplier, float duration)
