@@ -2,49 +2,60 @@ using UnityEngine;
 
 public class CameraController : MonoBehaviour
 {
-    // --- Variables Públicas (Ajustables desde el Inspector de Unity) ---
+    // --- Variables Pï¿½blicas (Ajustables desde el Inspector de Unity) ---
 
     [Header("Objetivo")]
-    [Tooltip("Referencia al GameObject del jugador que la cámara debe seguir.")]
+    [Tooltip("Referencia al GameObject del jugador que la cï¿½mara debe seguir.")]
     public Transform playerTarget;
 
-    [Header("Offset y Suavizado")]
-    [Tooltip("Vector de desplazamiento fijo de la cámara respecto al jugador (ej: X=0, Y=4, Z=-6).")]
-    public Vector3 cameraOffset = new Vector3(0f, 4.5f, -6f);
+    [Header("Posiciï¿½n Fija")]
+    [Tooltip("Posiciï¿½n X fija de la cï¿½mara.")]
+    public float fixedCameraX = 0f;
 
-    [Tooltip("Velocidad de suavizado del movimiento de la cámara (cuanto más alto, más rápido sigue).")]
+    [Tooltip("Posiciï¿½n Y fija de la cï¿½mara.")]
+    public float fixedCameraY = 4.5f;
+
+    [Tooltip("Offset en Z respecto al jugador (distancia hacia atrï¿½s).")]
+    public float zOffset = -6f;
+
+    [Tooltip("Velocidad de suavizado del movimiento en Z (cuanto mï¿½s alto, mï¿½s rï¿½pido sigue).")]
     public float followSpeed = 5f;
 
 
     // --- Variables Privadas ---
 
-    // La posición objetivo que la cámara intentará alcanzar en cada frame.
+    // La posiciï¿½n objetivo que la cï¿½mara intentarï¿½ alcanzar en cada frame.
     private Vector3 targetPosition;
 
 
-    // LateUpdate se llama después de que todos los objetos han sido actualizados en Update().
-    // Esto asegura que la cámara sigue la posición FINAL del jugador en el frame actual.
+    // LateUpdate se llama despuï¿½s de que todos los objetos han sido actualizados en Update().
+    // Esto asegura que la cï¿½mara sigue la posiciï¿½n FINAL del jugador en el frame actual.
     void LateUpdate()
     {
-        // Verificación de seguridad: si no hay jugador asignado, no hacemos nada.
+        // Verificaciï¿½n de seguridad: si no hay jugador asignado, no hacemos nada.
         if (playerTarget == null)
         {
-            Debug.LogError("ERROR: El Player Target no está asignado en CameraController.");
+            Debug.LogError("ERROR: El Player Target no estï¿½ asignado en CameraController.");
             return;
         }
 
-        // 1. Calcular la Posición Objetivo
-        // La posición objetivo es la posición actual del jugador más el desplazamiento (offset) fijo.
-        targetPosition = playerTarget.position + cameraOffset;
+        // 1. Calcular la Posiciï¿½n Objetivo
+        // X e Y son fijos, Z sigue al jugador mï¿½s el offset
+        targetPosition = new Vector3(
+            fixedCameraX,
+            fixedCameraY,
+            playerTarget.position.z + zOffset
+        );
 
-        // 2. Aplicar Suavizado (Lerp)
-        // Usamos Vector3.Lerp para mover la cámara de su posición actual
-        // a la posición objetivo de forma suave, usando la velocidad definida (followSpeed).
+        // 2. Aplicar Suavizado (Lerp) solo en Z
+        // La cï¿½mara mantiene X e Y fijos, pero sigue suavemente el eje Z del jugador.
         // Time.deltaTime es crucial para asegurar que el movimiento sea independiente de la tasa de frames.
-        transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * followSpeed);
+        Vector3 newPosition = transform.position;
+        newPosition.z = Mathf.Lerp(transform.position.z, targetPosition.z, Time.deltaTime * followSpeed);
+        transform.position = newPosition;
 
-        // OPCIONAL: Asegurar que la cámara siempre mire al jugador
+        // OPCIONAL: Asegurar que la cï¿½mara siempre mire al jugador
         // transform.LookAt(playerTarget); 
-        // Nota: En un Endless Runner simple, a menudo la rotación es fija para un look más "arcade".
+        // Nota: En un Endless Runner simple, a menudo la rotaciï¿½n es fija para un look mï¿½s "arcade".
     }
 }
