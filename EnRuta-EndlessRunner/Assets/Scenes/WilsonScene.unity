@@ -1110,6 +1110,10 @@ MonoBehaviour:
   jumpForce: 10
   laneDistance: 3
   currentSpeedMultiplier: 1
+  totalGarbage: 0
+  plasticCount: 0
+  glassCount: 0
+  cardboardCount: 0
 --- !u!54 &636099590
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1196,7 +1200,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   magnetAttractionCollider: {fileID: 0}
   isMagnetActive: 0
-  attractableObjects: []
   attractionSpeed: 2500
   collectionHeightOffset: 1
 --- !u!114 &636099595
@@ -1460,6 +1463,10 @@ MonoBehaviour:
   jumpForce: 10
   laneDistance: 4
   currentSpeedMultiplier: 1
+  totalGarbage: 0
+  plasticCount: 0
+  glassCount: 0
+  cardboardCount: 0
 --- !u!54 &1171655666
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -133,7 +133,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true; // Permite saltar de nuevo
-            anim.SetBool("IsJumping", false);
+            anim.SetTrigger("IsRun");
         }
 
         // Si choca con un Rigidbody (sólido)
@@ -187,7 +187,7 @@ public class PlayerController : MonoBehaviour
     {
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         isGrounded = false;
-        anim.SetBool("IsJumping", true);
+        anim.SetTrigger("IsJump");
     }
 
     private void MoveLane(int direction)

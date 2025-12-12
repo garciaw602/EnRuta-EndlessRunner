@@ -35,7 +35,7 @@ public class Collectable : MonoBehaviour
         }
     }
 
-    // EL MÉTODO Update() FUE ELIMINADO para centralizar el movimiento en PowerUpEffectController.
+    // ¡IMPORTANTE! EL MÉTODO Update() FUE ELIMINADO para evitar errores lógicos y centralizar el movimiento en PowerUpEffectController.
 
     /// <summary>
     /// Intenta recolectar el objeto, llamado por el PlayerController al chocar con su Collider de cuerpo.
@@ -48,10 +48,10 @@ public class Collectable : MonoBehaviour
         PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
         bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
 
-        // LÓGICA DE RECOLECCIÓN SIMPLIFICADA Y CORREGIDA PARA ANIMACIÓN:
+        // LÓGICA DE RECOLECCIÓN:
         // Solo permitimos la recolección por contacto (el cuerpo del jugador) si el imán NO está activo.
-        // Si el imán está activo, la recolección la gestionará el PowerUpEffectController.Update(), 
-        // lo que permite ver la animación de atracción.
+        // Si el imán está activo, la Basura se mueve y es recolectada por PowerUpEffectController.Update()
+        // El PowerUp de Velocidad (si el imán está activo) no se recoge.
         bool shouldCollect = !isMagnetActive;
 
 
@@ -67,7 +67,6 @@ public class Collectable : MonoBehaviour
             Destroy(gameObject); // Destruye el objeto recolectado
         }
         
-        // Si el imán está activo, la función termina aquí. El objeto es movido y recolectado
-        // por PowerUpEffectController.Update() después de ser animado.
+        // Si el imán está activo, la recolección por contacto se ignora aquí.
     }
 }
