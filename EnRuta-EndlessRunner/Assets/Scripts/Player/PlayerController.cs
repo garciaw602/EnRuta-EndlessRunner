@@ -158,21 +158,22 @@ public class PlayerController : MonoBehaviour
     // --- LÓGICA DE COLECCIÓN ---
     public void ProcessCollectable(CollectableData data)
     {
-        switch (data.type)
+        // 1. Manejo de Power-Ups
+        if (data.type == CollectableType.PowerUp)
         {
-            case CollectableType.GeneralGarbage:
-                totalGarbage += data.baseValue;
-                break;
-            case CollectableType.Recyclable:
-                ProcessRecyclable(data.collectableName, data.baseValue);
-                break;
-            case CollectableType.PowerUp:
-                if (data.powerUpEffect != null && powerUpEffects != null)
-                {
-                    // DELEGA la activación al PowerUpEffectController
-                    data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
-                }
-                break;
+            if (data.powerUpEffect != null && powerUpEffects != null)
+            {
+                // Aplica el efecto del SO al controlador
+                // NOTA: Esto asume que ApplyEffect ya pasa los argumentos necesarios (como la duración)
+                data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
+            }
+            return;
+        }
+
+        // 2. Manejo de Basura/Reciclables
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.AddToInventory(data.collectableName, data.baseValue, data.type);
         }
     }
 
@@ -211,7 +212,7 @@ public class PlayerController : MonoBehaviour
         // 2. Llama al GameManager para que maneje la pausa y los eventos
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.EndGame();
+            GameManager.Instance.GameOver();
         }
 
         Debug.Log("¡GAME OVER! - Evento Global Emitido por Player.");
