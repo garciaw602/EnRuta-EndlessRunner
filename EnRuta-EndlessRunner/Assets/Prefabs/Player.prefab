@@ -52,6 +52,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 3c5f44daf8e0259428a6685f1bebf5c3, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 1082271958561512970, guid: 3c5f44daf8e0259428a6685f1bebf5c3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2762437710310982535, guid: 3c5f44daf8e0259428a6685f1bebf5c3, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -91,7 +103,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2294298715684229350}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 10
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -108,7 +120,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 80
+  m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &5493081157138235198
 MonoBehaviour:
@@ -122,9 +134,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f134893069b656942aa7eead15434335, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseSpeed: 0
+  baseSpeed: 12
   lateralSpeed: 5
-  jumpForce: 10
+  jumpForce: 80
   laneDistance: 3
   currentSpeedMultiplier: 1
   totalGarbage: 0
@@ -225,3 +237,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   magnetAttractionCollider: {fileID: 4227832976583846636}
   isMagnetActive: 0
+  attractionSpeed: 500
+  collectionHeightOffset: 1

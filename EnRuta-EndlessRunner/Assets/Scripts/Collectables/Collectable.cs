@@ -5,51 +5,70 @@ using UnityEngine;
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el archivo CollectableData (.asset)")]
+    // Datos definidos por el Scriptable Object (SO)
     public CollectableData data;
 
-    private PowerUpEffectController powerUpEffects;
-
+    // Referencia al controlador de efectos del jugador para la limpieza del imán.
+    private PowerUpEffectController powerUpEffects; 
+    
     void Start()
     {
-        // ... (El código de Rigidbody y Trigger se mantiene) ...
+        if (data == null)
+        {
+            Debug.LogError($"Collectable en {gameObject.name} no tiene asignado CollectableData. ¡Esto causará fallos!");
+        }
+        
+        // Búsqueda de la referencia del PlayerController
+        GameObject playerGO = GameObject.FindWithTag("Player");
+        if (playerGO != null)
+        {
+            powerUpEffects = playerGO.GetComponent<PowerUpEffectController>();
+        }
+        else
+        {
+            Debug.LogError("Collectable no encontró el objeto 'Player'. ¿Tiene la etiqueta 'Player'?");
+        }
+
+        // Asegura que el Collider sea Trigger para que el jugador pueda atravesarlo y recolectarlo.
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.isTrigger = true;
+        }
     }
 
+    // ¡IMPORTANTE! EL MÉTODO Update() FUE ELIMINADO para evitar errores lógicos y centralizar el movimiento en PowerUpEffectController.
+
     /// <summary>
-    /// Maneja la recolección por contacto (cuerpo del jugador o ítem atraído).
+    /// Intenta recolectar el objeto, llamado por el PlayerController al chocar con su Collider de cuerpo.
     /// </summary>
-    private void OnTriggerEnter(Collider other)
+    public void AttemptCollection(PlayerController pc)
     {
-        // 🛑 CRÍTICO: Asegura que la colisión es SOLO con el Tag "Player" (cuerpo del jugador o Magnet Hitbox si también tiene el tag).
-        if (!other.CompareTag("Player")) return;
+        if (data == null) return;
 
-        // Intentamos obtener PlayerController del objeto que colisionó o de su padre
-        PlayerController player = other.GetComponent<PlayerController>();
-        if (player == null)
+        // Obtiene el estado actual del imán.
+        PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
+        bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
+
+        // LÓGICA DE RECOLECCIÓN:
+        // Solo permitimos la recolección por contacto (el cuerpo del jugador) si el imán NO está activo.
+        // Si el imán está activo, la Basura se mueve y es recolectada por PowerUpEffectController.Update()
+        // El PowerUp de Velocidad (si el imán está activo) no se recoge.
+        bool shouldCollect = !isMagnetActive;
+
+
+        if (shouldCollect)
         {
-            player = other.GetComponentInParent<PlayerController>();
-        }
-
-        if (player != null)
-        {
-            // 1. Obtener controlador de efectos para limpieza de lista
-            if (powerUpEffects == null)
-            {
-                powerUpEffects = player.GetComponent<PowerUpEffectController>();
-            }
-
-            // 2. Procesar la lógica (Activar PowerUp o Sumar Basura)
-            player.ProcessCollectable(data);
-
-            // 3. Limpiar la lista de atracción (si estaba siendo atraído)
+            // LIMPIEZA DE SEGURIDAD: Retira el objeto de la lista de atracción del imán (si estaba).
             if (powerUpEffects != null)
             {
-                // Usamos this.gameObject para referirnos al objeto Collectable
-                powerUpEffects.RemoveFromMagnetList(this.gameObject);
+                powerUpEffects.RemoveAttractableObject(gameObject);
             }
 
-            // 4. Destruir el objeto visual (¡Se recoge!)
-            Destroy(gameObject);
+            pc.ProcessCollectable(data); // Aplica el efecto o suma el puntaje
+            Destroy(gameObject); // Destruye el objeto recolectado
         }
+        
+        // Si el imán está activo, la recolección por contacto se ignora aquí.
     }
 }

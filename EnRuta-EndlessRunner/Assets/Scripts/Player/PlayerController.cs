@@ -127,9 +127,9 @@ public class PlayerController : MonoBehaviour
     {
         if (isGrounded && !isDead)
         {
-            isGrounded = false;
-            // Aplicamos la fuerza de salto
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            isGrounded = true; // Permite saltar de nuevo
+            anim.SetTrigger("IsRun");
+        }
 
             // Opcional: Ejecuta animación de salto
             if (anim != null) anim.SetTrigger("Jump");
@@ -144,20 +144,30 @@ public class PlayerController : MonoBehaviour
         // Asegúrate de que tus segmentos de camino tengan el Tag "Ground"
         if (collision.gameObject.CompareTag("Ground") && !isGrounded)
         {
-            isGrounded = true;
-
-            // Opcional: Ejecuta animación de aterrizaje
-            if (anim != null) anim.SetTrigger("Land");
+            // DELEGACIÓN: Llamamos al ítem para que GESTIONE la recolección y la destrucción.
+            // NO TOCAMOS NINGÚN CÓDIGO DE ATRACCIÓN AQUÍ.
+            item.AttemptCollection(this); 
         }
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // 🔴 Lógica de Muerte (Si choca con un Trigger de Obstáculo)
-        if (other.CompareTag("Obstaculo") || other.CompareTag("Obstaculo"))
+        // 1. Manejo de Power-Ups
+        if (data.type == CollectableType.PowerUp)
         {
-            Die();
-            other.enabled = false; // Desactiva el collider del obstáculo para evitar colisiones múltiples
+            if (data.powerUpEffect != null && powerUpEffects != null)
+            {
+                // Aplica el efecto del SO al controlador
+                // NOTA: Esto asume que ApplyEffect ya pasa los argumentos necesarios (como la duración)
+                data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
+            }
+            return;
+        }
+
+        // 2. Manejo de Basura/Reciclables
+        if (ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.AddToInventory(data.collectableName, data.baseValue, data.type);
         }
     }
 
@@ -165,7 +175,12 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
 
-        isDead = true;
+    private void Jump()
+    {
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        isGrounded = false;
+        anim.SetTrigger("IsJump");
+    }
 
         // Notificar al GameManager que el juego ha terminado
         if (gameManager != null)
@@ -190,13 +205,7 @@ public class PlayerController : MonoBehaviour
         // 1. Manejo de Power-Ups
         if (data.type == CollectableType.PowerUp)
         {
-            if (data.powerUpEffect != null && powerUpEffects != null)
-            {
-                // Aplica el efecto del SO al controlador
-                // NOTA: Esto asume que ApplyEffect ya pasa los argumentos necesarios (como la duración)
-                data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
-            }
-            return;
+            GameManager.Instance.GameOver();
         }
 
         // 2. Manejo de Basura/Reciclables
