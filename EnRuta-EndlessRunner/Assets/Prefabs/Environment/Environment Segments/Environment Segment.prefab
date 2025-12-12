@@ -770,7 +770,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2970683588130126991, guid: 37d13e5730177db40ba46e6f46ae3357, type: 3}
       propertyPath: m_Name
-      value: Via
+      value: Calle
       objectReference: {fileID: 0}
     - target: {fileID: 8112605855233761926, guid: 37d13e5730177db40ba46e6f46ae3357, type: 3}
       propertyPath: m_LocalPosition.z
