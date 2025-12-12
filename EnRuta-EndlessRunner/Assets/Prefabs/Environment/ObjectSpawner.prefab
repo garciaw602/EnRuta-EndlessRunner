@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7717045416865591616
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8334947532123444590}
+  - component: {fileID: 1230378360843867018}
+  m_Layer: 0
+  m_Name: ObjectSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8334947532123444590
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7717045416865591616}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 57.417614, y: 71.45601, z: 206.20113}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1230378360843867018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7717045416865591616}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9abaf55bea677f44d80922eae31c2859, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  collectiblePrefabs:
+  - {fileID: 6243543185397319980, guid: 25d3a80f8bd3587498068cca43d00891, type: 3}
+  - {fileID: 3760898891926529003, guid: 1dd2d15d335576a489327fc37667b948, type: 3}
+  - {fileID: 5056126775115031818, guid: d1f09106413a7cd4fae9a5229dc6f03b, type: 3}
+  - {fileID: 4754374651763833911, guid: b8c4913fcd5204044a5716dc30050cd1, type: 3}
+  obstaclePrefabs:
+  - {fileID: 2259182459114019886, guid: ad227999317d0b94eba1a3ee0124b009, type: 3}
+  - {fileID: 6686873718770408, guid: c7c22ff175ce72a49943a9662a234fe3, type: 3}
+  - {fileID: 236995693668146514, guid: d0d2398006686cf4ca9439b967be1c3a, type: 3}
+  - {fileID: 8386207068080791345, guid: db0e53c34d2cadb44b2a65b148ff17ca, type: 3}
+  - {fileID: 168633001861420986, guid: 42b651e6dc8a4bc4084b766ba5d592a1, type: 3}
+  powerUpPrefabs:
+  - {fileID: 6288361865518058662, guid: f5fc0c33cf4943a46867d96b22b74015, type: 3}
+  - {fileID: 3046598598168049027, guid: e42c505d6e54d7f4ca617bb286cf167e, type: 3}
+  collectibleChance: 0.6
+  obstacleChance: 0.3
+  powerUpChance: 0.1
+  safeStartOffset: 6
+  safeEndOffset: 6
+  rowSpacing: 4
+  minCollectibles: 4
+  maxCollectibles: 8
+  collectibleSpacing: 1
+  collectibleY: 1.2

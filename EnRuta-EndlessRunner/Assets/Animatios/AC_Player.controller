@@ -61,15 +61,18 @@ AnimatorStateTransition:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  m_Conditions: []
+  m_Conditions:
+  - m_ConditionMode: 1
+    m_ConditionEvent: IsJumping
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 0}
   m_DstState: {fileID: 8061799618572761323}
   m_Solo: 0
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
-  m_TransitionOffset: 0
+  m_TransitionDuration: 0.16996896
+  m_TransitionOffset: 0.06275785
   m_ExitTime: 0.6875
   m_HasExitTime: 0
   m_HasFixedDuration: 1
@@ -97,7 +100,7 @@ AnimatorController:
     m_DefaultInt: 0
     m_DefaultBool: 0
     m_Controller: {fileID: 9100000}
-  - m_Name: Jump
+  - m_Name: IsJumping
     m_Type: 9
     m_DefaultFloat: 0
     m_DefaultInt: 0
@@ -136,9 +139,9 @@ AnimatorStateTransition:
   m_Mute: 0
   m_IsExit: 0
   serializedVersion: 3
-  m_TransitionDuration: 0.25
+  m_TransitionDuration: 1.634537
   m_TransitionOffset: 0
-  m_ExitTime: 0.90384614
+  m_ExitTime: 0.49445608
   m_HasExitTime: 1
   m_HasFixedDuration: 1
   m_InterruptionSource: 0
@@ -257,7 +260,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: jump 1
+  m_Name: jump
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
