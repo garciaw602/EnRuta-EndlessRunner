@@ -6,9 +6,11 @@ public class SpeedPowerUp : PowerUpEffectData
     [Tooltip("Multiplicador de velocidad (usar < 1 para ralentizar)")]
     public float speedMultiplier = 2.0f;
 
-    // FIX: Llama al método del PowerUpEffectController.
-    public override void ApplyEffect(PowerUpEffectController receiver, float duration)
+    //  Implementamos la funciï¿½n obligatoria de la interfaz (IPowerUpEffect).
+    
+    public override void ApplyEffect(PowerUpEffectController controller, float duration)
     {
-        receiver.ActivateSpeedBoost(speedMultiplier, duration);
+        // La lï¿½gica del Power-Up vive en el controlador.
+        controller.ActivateSpeedBoost(speedMultiplier, duration);
     }
 }
