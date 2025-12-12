@@ -1576,6 +1576,18 @@ PrefabInstance:
       propertyPath: baseSpeed
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 5493081157138235198, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: jumpForce
+      value: 350
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809566245042285233, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_Mass
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809566245042285233, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_CollisionDetection
+      value: 2
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

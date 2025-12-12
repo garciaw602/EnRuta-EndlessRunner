@@ -189,6 +189,7 @@ public class PlayerController : MonoBehaviour
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         isGrounded = false;
         anim.SetTrigger("IsJump");
+        anim.SetBool("IsRunning", false);
     }
 
     private void MoveLane(int direction)
