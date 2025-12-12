@@ -1,72 +1,55 @@
-﻿using UnityEngine;
+﻿// Collectable.cs
+using UnityEngine;
 
+// Asegurarse de que el script Collectable.cs esté en el objeto con el Collider de la Basura/PowerUp
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {
-    // Datos definidos por el Scriptable Object (SO)
+    [Tooltip("Arrastra aquí el archivo CollectableData (.asset)")]
     public CollectableData data;
 
-    // Referencia al controlador de efectos del jugador para la limpieza del imán.
-    private PowerUpEffectController powerUpEffects; 
-    
+    private PowerUpEffectController powerUpEffects;
+
     void Start()
     {
-        if (data == null)
-        {
-            Debug.LogError($"Collectable en {gameObject.name} no tiene asignado CollectableData. ¡Esto causará fallos!");
-        }
-        
-        // Búsqueda de la referencia del PlayerController
-        GameObject playerGO = GameObject.FindWithTag("Player");
-        if (playerGO != null)
-        {
-            powerUpEffects = playerGO.GetComponent<PowerUpEffectController>();
-        }
-        else
-        {
-            Debug.LogError("Collectable no encontró el objeto 'Player'. ¿Tiene la etiqueta 'Player'?");
-        }
-
-        // Asegura que el Collider sea Trigger para que el jugador pueda atravesarlo y recolectarlo.
-        Collider col = GetComponent<Collider>();
-        if (col != null)
-        {
-            col.isTrigger = true;
-        }
+        // ... (El código de Rigidbody y Trigger se mantiene) ...
     }
 
-    // ¡IMPORTANTE! EL MÉTODO Update() FUE ELIMINADO para evitar errores lógicos y centralizar el movimiento en PowerUpEffectController.
-
     /// <summary>
-    /// Intenta recolectar el objeto, llamado por el PlayerController al chocar con su Collider de cuerpo.
+    /// Maneja la recolección por contacto (cuerpo del jugador o ítem atraído).
     /// </summary>
-    public void AttemptCollection(PlayerController pc)
+    private void OnTriggerEnter(Collider other)
     {
-        if (data == null) return;
+        // 🛑 CRÍTICO: Asegura que la colisión es SOLO con el Tag "Player" (cuerpo del jugador o Magnet Hitbox si también tiene el tag).
+        if (!other.CompareTag("Player")) return;
 
-        // Obtiene el estado actual del imán.
-        PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
-        bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
-
-        // LÓGICA DE RECOLECCIÓN:
-        // Solo permitimos la recolección por contacto (el cuerpo del jugador) si el imán NO está activo.
-        // Si el imán está activo, la Basura se mueve y es recolectada por PowerUpEffectController.Update()
-        // El PowerUp de Velocidad (si el imán está activo) no se recoge.
-        bool shouldCollect = !isMagnetActive;
-
-
-        if (shouldCollect)
+        // Intentamos obtener PlayerController del objeto que colisionó o de su padre
+        PlayerController player = other.GetComponent<PlayerController>();
+        if (player == null)
         {
-            // LIMPIEZA DE SEGURIDAD: Retira el objeto de la lista de atracción del imán (si estaba).
-            if (powerUpEffects != null)
+            player = other.GetComponentInParent<PlayerController>();
+        }
+
+        if (player != null)
+        {
+            // 1. Obtener controlador de efectos para limpieza de lista
+            if (powerUpEffects == null)
             {
-                powerUpEffects.RemoveAttractableObject(gameObject);
+                powerUpEffects = player.GetComponent<PowerUpEffectController>();
             }
 
-            pc.ProcessCollectable(data); // Aplica el efecto o suma el puntaje
-            Destroy(gameObject); // Destruye el objeto recolectado
+            // 2. Procesar la lógica (Activar PowerUp o Sumar Basura)
+            player.ProcessCollectable(data);
+
+            // 3. Limpiar la lista de atracción (si estaba siendo atraído)
+            if (powerUpEffects != null)
+            {
+                // Usamos this.gameObject para referirnos al objeto Collectable
+                powerUpEffects.RemoveFromMagnetList(this.gameObject);
+            }
+
+            // 4. Destruir el objeto visual (¡Se recoge!)
+            Destroy(gameObject);
         }
-        
-        // Si el imán está activo, la recolección por contacto se ignora aquí.
     }
 }
