@@ -1,5 +1,7 @@
-﻿using UnityEngine;
+﻿// Collectable.cs
+using UnityEngine;
 
+// Asegurarse de que el script Collectable.cs esté en el objeto con el Collider de la Basura/PowerUp
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {

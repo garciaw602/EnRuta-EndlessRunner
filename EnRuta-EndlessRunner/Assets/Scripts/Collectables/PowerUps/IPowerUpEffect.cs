@@ -1,10 +1,9 @@
-// IPowerUpEffect.cs
-// Define el contrato para el Patr�n Strategy.
-
-using UnityEngine;
+﻿// IPowerUpEffect.cs
+// Define el contrato para el Patrón Strategy.
 
 public interface IPowerUpEffect
 {
-    //  El receptor  es el PowerUpEffectController.
-    void ApplyEffect(PowerUpEffectController receiver, float duration);
+    
+    // El contrato ahora pide el tipo correcto de controlador (PowerUpEffectController).
+    void ApplyEffect(PowerUpEffectController controller, float duration);
 }
