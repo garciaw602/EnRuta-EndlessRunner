@@ -218,4 +218,5 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log("¡GAME OVER! - Evento Global Emitido por Player.");
     }
+    // --- FIN DE LA CLASE ---
 }
