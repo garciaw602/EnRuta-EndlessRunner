@@ -25,7 +25,7 @@ public class PowerUpEffectController : MonoBehaviour
     void Awake()
     {
         player = GetComponent<PlayerController>();
-        if (player == null) Debug.LogError("PowerUpEffectController requiere un PlayerController en el mismo objeto.");
+        if (player == null) Debug.LogError("PowerUpEffectController requiere un PlayerController.");
 
         if (magnetAttractionCollider != null)
         {
@@ -153,8 +153,7 @@ public class PowerUpEffectController : MonoBehaviour
         isMagnetActive = false;
         if (magnetAttractionCollider != null)
         {
-            magnetAttractionCollider.enabled = false;
+            attractableObjects.Remove(obj);
         }
-        magnetCoroutine = null;
     }
 }

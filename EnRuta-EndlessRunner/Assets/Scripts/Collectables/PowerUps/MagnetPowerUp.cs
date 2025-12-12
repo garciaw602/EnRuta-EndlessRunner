@@ -3,12 +3,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "MagnetPowerUp", menuName = "PowerUps/Magnet")]
 public class MagnetPowerUp : PowerUpEffectData
 {
-    [Tooltip("Radio de atracción que aplica el imán.")]
+    [Tooltip("Radio de atracciï¿½n que aplica el imï¿½n.")]
     public float attractionRadius = 10f;
 
-    // FIX: Llama al método del PowerUpEffectController.
-    public override void ApplyEffect(PowerUpEffectController receiver, float duration)
+    // Implementaciï¿½n del efecto: Llama a la lï¿½gica central del PowerUpEffectController.
+    
+    public override void ApplyEffect(PowerUpEffectController controller, float duration)
     {
-        receiver.ActivateMagnet(attractionRadius, duration);
+        controller.ActivateMagnet(attractionRadius, duration);
     }
 }
