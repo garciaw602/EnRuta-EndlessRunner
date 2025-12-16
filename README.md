@@ -1,6 +1,6 @@
 EN DESARROLLO
 </p>
-<img src="https://github.com/garciaw602/EnRuta-EndlessRunner/blob/main/EnRuta-EndlessRunner/Enruta.gif" alt="GIF del juego Enruta" width="600" style="margin-bottom: 10px;">
+<img src="https://github.com/garciaw602/EnRuta-EndlessRunner/blob/main/EnRuta-EndlessRunner/Enruta.gif" alt="GIF del juego Enruta" width="1000" style="margin-bottom: 10px;">
 
 Título: EnRuta
 Motor: Unity 6 (6000.0.48f1)</p>
