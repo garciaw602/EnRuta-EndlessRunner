@@ -19,6 +19,10 @@ public class PlayerController : MonoBehaviour
     private Rigidbody rb;
     private Animator anim;
     private CapsuleCollider playerCollider;
+
+    // ➡️ AÑADIDO: REFERENCIA AL CONTROLADOR DE AUDIO
+    [Header("Control de Audio")]
+    public PlayerAudioController audioController;
     // -------------------------------------------
 
     [Header("Inventario y Estadísticas")]
@@ -42,6 +46,8 @@ public class PlayerController : MonoBehaviour
         // 2. Obtención de Componentes Refactorizados
         slideHandler = GetComponent<SlideHandler>();
         powerUpEffects = GetComponent<PowerUpEffectController>();
+        // ➡️ OBTENCIÓN DEL CONTROLADOR DE AUDIO
+        audioController = GetComponent<PlayerAudioController>();
 
         // 3. Verificaciones CRÍTICAS (Asegura que el movimiento/animación funcionen)
         if (rb == null || playerCollider == null || anim == null)
@@ -54,14 +60,12 @@ public class PlayerController : MonoBehaviour
         // 4. Inicialización del Slide Handler (Crucial para el deslizamiento y salto)
         if (slideHandler != null)
         {
-            // Pasa las referencias y dimensiones originales para que el handler pueda manipular el collider
             float originalHeight = playerCollider.height;
             Vector3 originalCenter = playerCollider.center;
             slideHandler.Initialize(playerCollider, anim, originalHeight, originalCenter);
         }
         else
         {
-            // Esto es lo que causaba el fallo de Salto/Deslizamiento
             Debug.LogError("FATAL: SlideHandler.cs no está adjunto. Deslizamiento y Salto fallarán.");
         }
 
@@ -70,22 +74,51 @@ public class PlayerController : MonoBehaviour
             Debug.LogWarning("Advertencia: PowerUpEffectController.cs no está adjunto. Los power-ups no funcionarán.");
         }
 
+        if (audioController == null)
+        {
+            Debug.LogWarning("Advertencia: PlayerAudioController.cs no está adjunto. Los sonidos del jugador no funcionarán.");
+        }
+
         anim.SetBool("IsRunning", true);
+
+        // ➡️ INICIO DEL SONIDO DE CORRER
+        if (audioController != null)
+        {
+            audioController.StartRunLoop();
+        }
     }
 
     void Update()
     {
         bool canMove = !isDead && (GameManager.Instance != null && !GameManager.Instance.IsGameOver);
-        // Usa la propiedad IsSliding del SlideHandler
         bool canJumpOrSlide = isGrounded && slideHandler != null && !slideHandler.IsSliding;
 
-        if (!canMove) return;
+        if (!canMove)
+        {
+            // ➡️ DETENER EL SONIDO DE CORRER CUANDO EL JUEGO ESTÁ EN PAUSA/TERMINADO
+            if (audioController != null)
+            {
+                audioController.StopRunLoop();
+            }
+            return;
+        }
+        // Asegura que el loop de correr continúe si el juego está activo
+        if (audioController != null)
+        {
+            audioController.StartRunLoop();
+        }
+
 
         // 1. Lógica de Salto
         if ((Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
             && canJumpOrSlide)
         {
             Jump();
+            // ➡️ LLAMADA AL SONIDO DE SALTO
+            if (audioController != null)
+            {
+                audioController.PlayJump();
+            }
         }
 
         // 2. Lógica de Deslizamiento (DELEGADA)
@@ -93,6 +126,11 @@ public class PlayerController : MonoBehaviour
             && canJumpOrSlide)
         {
             slideHandler.StartSlide(); // DELEGA la lógica
+            // ➡️ LLAMADA AL SONIDO DE DESLIZAMIENTO
+            if (audioController != null)
+            {
+                audioController.PlaySlide();
+            }
         }
 
         // 3. Lógica de Movimiento Lateral (Input)
@@ -139,6 +177,11 @@ public class PlayerController : MonoBehaviour
         // Si choca con un Rigidbody (sólido)
         if (collision.gameObject.CompareTag("Obstaculo") && !isDead)
         {
+            // ➡️ LLAMADA AL SONIDO DE CHOQUE ANTES DE MORIR
+            if (audioController != null)
+            {
+                audioController.PlayCrash();
+            }
             Die();
         }
     }
@@ -149,9 +192,8 @@ public class PlayerController : MonoBehaviour
 
         if (item != null)
         {
-            // DELEGACIÓN: Llamamos al ítem para que GESTIONE la recolección y la destrucción.
-            // NO TOCAMOS NINGÚN CÓDIGO DE ATRACCIÓN AQUÍ.
-            item.AttemptCollection(this); 
+            // Nota: El sonido de recolección se maneja mejor en el script Collectable.cs o AudioManager.
+            item.AttemptCollection(this);
         }
     }
 
@@ -163,8 +205,6 @@ public class PlayerController : MonoBehaviour
         {
             if (data.powerUpEffect != null && powerUpEffects != null)
             {
-                // Aplica el efecto del SO al controlador
-                // NOTA: Esto asume que ApplyEffect ya pasa los argumentos necesarios (como la duración)
                 data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
             }
             return;
@@ -207,16 +247,5 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        // 1. Inicia la animación de muerte (se ejecuta en el próximo frame de Update)
-        anim.SetTrigger("Die");
-
-        // 2. Llama al GameManager para que maneje la pausa y los eventos
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.GameOver();
-        }
-
-        Debug.Log("¡GAME OVER! - Evento Global Emitido por Player.");
     }
-    // --- FIN DE LA CLASE ---
-}
+}    

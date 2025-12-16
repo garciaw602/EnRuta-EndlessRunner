@@ -18,6 +18,10 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI timeText;
     public TextMeshProUGUI powerUpText;
 
+    // El objeto que contiene el icono del power-up (CRÍTICO)
+    [Header("Iconos de Estado")]
+    public GameObject powerUpIconContainer;
+
     // --- 4. Referencias de Pantallas de Fin de Juego ---
     public GameObject gameOverPanel;
 
@@ -36,17 +40,23 @@ public class UIManager : MonoBehaviour
             return;
         }
 
+        // Inicialización de la UI
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (powerUpText != null) powerUpText.text = string.Empty;
+
+        // ➡️ LA CORRECCIÓN CRÍTICA: Desactivar el ícono al inicio.
+        if (powerUpIconContainer != null) powerUpIconContainer.SetActive(false);
     }
 
 
     void OnEnable()
     {
+        // Se usa el chequeo de GameManager.Instance != null por si el UIManager se carga antes.
         if (GameManager.Instance != null && !isSubscribed)
         {
             // ➡️ Suscripción a Eventos (¡CRÍTICO!):
             GameManager.Instance.OnGameOver += HandleGameOverEvent;
+            // Asumo que ScoreManager tiene un evento que llama a esta función
             GameManager.Instance.OnScoreUpdated += UpdateInventoryUI;
 
             isSubscribed = true;
@@ -86,20 +96,41 @@ public class UIManager : MonoBehaviour
         int minutes = Mathf.FloorToInt(timeInSeconds / 60F);
         int seconds = Mathf.FloorToInt(timeInSeconds - minutes * 60);
 
-        timeText.text = string.Format("TIEMPO: {0:00}:{1:00}", minutes, seconds);
+        timeText.text = string.Format(": {0:00}:{1:00}", minutes, seconds);
     }
 
-    // Llamado desde PowerUpEffectController.cs (no usa evento, por ahora se actualiza directo)
+    // Llamado desde PowerUpEffectController.cs CADA FRAME
     public void ShowPowerUpStatus(string powerUpName, float remainingTime)
     {
         if (powerUpText == null) return;
-        powerUpText.text = $"[ACTIVO] {powerUpName}: {remainingTime:0.0}s";
+
+        // ➡️ LÓGICA DE ACTIVACIÓN DEL ICONO
+        if (powerUpIconContainer != null)
+        {
+            // Solo activamos si no está activo ya, para ahorrar llamadas
+            if (!powerUpIconContainer.activeSelf)
+            {
+                powerUpIconContainer.SetActive(true);
+            }
+        }
+
+        // Actualiza el texto
+        // Dejé tu formato personalizado, asumo que el "   : " es para alinear con el icono
+        powerUpText.text = $"   : {remainingTime:0.0}s";
     }
 
-    // Llamado desde PowerUpEffectController.cs
+    // Llamado desde PowerUpEffectController.cs al finalizar la Corrutina
     public void ClearPowerUpStatus()
     {
         if (powerUpText == null) return;
+
+        // ➡️ LÓGICA DE DESACTIVACIÓN DEL ICONO
+        if (powerUpIconContainer != null)
+        {
+            powerUpIconContainer.SetActive(false);
+        }
+
+        // Limpia el texto
         powerUpText.text = string.Empty;
     }
 

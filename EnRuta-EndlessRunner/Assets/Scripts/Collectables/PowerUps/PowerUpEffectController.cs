@@ -1,25 +1,27 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic; // Necesario para guardar los objetos a atraer
+using System.Collections.Generic;
 
 public class PowerUpEffectController : MonoBehaviour
 {
     [Header("Componentes de Power-Up")]
-    // Collider del Player que define el radio de atracciÃ³n del imÃ¡n.
-    public SphereCollider magnetAttractionCollider; 
+    // Collider del Player que define el radio de atracción del imán.
+    public SphereCollider magnetAttractionCollider;
 
     [HideInInspector] public bool isMagnetActive = false;
-    
-    // Lista de objetos de BASURA que estÃ¡n dentro del radio del imÃ¡n.
+
+    // Lista de objetos de BASURA que están dentro del radio del imán.
     private List<GameObject> attractableObjects = new List<GameObject>();
 
     private PlayerController player;
     private Coroutine speedCoroutine;
     private Coroutine magnetCoroutine;
 
+    // Variable necesaria para almacenar la duración y el nombre del PowerUp de Velocidad
+    private float currentSpeedDuration = 0f;
+
     [Header("Magnet Movement")]
-    // AUMENTADO DE 1000f a 2500f para un efecto de atracciÃ³n mÃ¡s dramÃ¡tico.
-    public float attractionSpeed = 2500f; 
+    public float attractionSpeed = 2500f;
     public float collectionHeightOffset = 1.0f;
 
     void Awake()
@@ -30,23 +32,35 @@ public class PowerUpEffectController : MonoBehaviour
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.enabled = false;
-            magnetAttractionCollider.isTrigger = true; 
+            magnetAttractionCollider.isTrigger = true;
         }
     }
-    
-    /// <summary>
-    /// Maneja el movimiento de todos los objetos en la lista 'attractableObjects'.
-    /// </summary>
+
     void Update()
     {
-        // Solo ejecutar si el imÃ¡n estÃ¡ activo.
-        if (!isMagnetActive) return;
+        // 1. Lógica de Atracción del Imán
+        if (isMagnetActive)
+        {
+            HandleMagnetAttraction();
+        }
 
-        // IteraciÃ³n inversa para poder eliminar objetos de la lista mientras iteramos.
+        // 2. Actualización de UI para PowerUp de Velocidad (Si es necesario mostrar el tiempo)
+        // Nota: El tiempo del imán se gestiona dentro de su Corrutina, no aquí.
+        if (currentSpeedDuration > 0)
+        {
+            // Opcional: Si quieres mostrar el Boost, llama a UIManager aquí también.
+            // Ejemplo: UIManager.Instance.ShowPowerUpStatus("VELOCIDAD", currentSpeedDuration);
+            // currentSpeedDuration -= Time.deltaTime;
+        }
+    }
+
+    private void HandleMagnetAttraction()
+    {
+        // Iteración inversa para poder eliminar objetos de la lista mientras iteramos.
         for (int i = attractableObjects.Count - 1; i >= 0; i--)
         {
             GameObject obj = attractableObjects[i];
-            
+
             // Si el objeto fue destruido, lo removemos de la lista.
             if (obj == null)
             {
@@ -54,19 +68,23 @@ public class PowerUpEffectController : MonoBehaviour
                 continue;
             }
 
-            // Mover el objeto hacia la posiciÃ³n del jugador
+            // Mover el objeto hacia la posición del jugador
             Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
-            // Se usa MoveTowards para una velocidad constante, lo cual se siente muy potente.
-            obj.transform.position = Vector3.MoveTowards(obj.transform.position, targetPosition, attractionSpeed * Time.deltaTime);
-            
-            // RecolecciÃ³n por proximidad (cuando llegan al cuerpo del jugador)
+
+            // Mover hacia el jugador
+            obj.transform.position = Vector3.MoveTowards(
+                obj.transform.position,
+                targetPosition,
+                attractionSpeed * Time.deltaTime
+            );
+
+            // Recolección por proximidad (cuando llegan al cuerpo del jugador)
             float distance = Vector3.Distance(obj.transform.position, targetPosition);
             if (distance < 0.5f)
             {
                 Collectable collectable = obj.GetComponent<Collectable>();
                 if (collectable != null)
                 {
-                    // RecolecciÃ³n directa, ya que ha sido atraÃ­do por el imÃ¡n
                     player.ProcessCollectable(collectable.data);
                 }
                 Destroy(obj);
@@ -76,26 +94,24 @@ public class PowerUpEffectController : MonoBehaviour
     }
 
     /// <summary>
-    /// Detecta objetos que entran al radio del imÃ¡n (magnetAttractionCollider).
+    /// Detecta objetos que entran al radio del imán (magnetAttractionCollider).
     /// </summary>
     void OnTriggerEnter(Collider other)
     {
-        // Ignora si el imÃ¡n no estÃ¡ activo o si el objeto es el propio jugador.
+        // El OnTriggerEnter es llamado por el magnetAttractionCollider.
         if (!isMagnetActive || other.gameObject == gameObject) return;
-        
+
         Collectable collectable = other.GetComponent<Collectable>();
-        
-        // Debe tener el script Collectable y sus datos.
+
         if (collectable == null || collectable.data == null) return;
-        
-        // 1. VERIFICACIÃN CRÃTICA: Descartar PowerUps.
+
+        // Descartar PowerUps (solo atrae basura)
         if (collectable.data.type == CollectableType.PowerUp)
         {
-            Debug.Log($"[MAGNET IGNORE SUCCESS] PowerUp '{other.gameObject.name}' detectado correctamente como PowerUp. IGNORADO.");
-            return; 
+            return;
         }
-        
-        // 2. Si es basura (y no estÃ¡ ya en la lista), lo aÃ±adimos para ser atraÃ­do por Update.
+
+        // Si es basura, lo añadimos para ser atraído por Update.
         if (!attractableObjects.Contains(other.gameObject))
         {
             attractableObjects.Add(other.gameObject);
@@ -114,7 +130,8 @@ public class PowerUpEffectController : MonoBehaviour
     }
 
 
-    // --- LÃGICA DE EFECTOS ---
+    // --- LÓGICA DE EFECTOS ---
+
     public void ActivateSpeedBoost(float multiplier, float duration)
     {
         if (speedCoroutine != null) StopCoroutine(speedCoroutine);
@@ -124,9 +141,19 @@ public class PowerUpEffectController : MonoBehaviour
     private IEnumerator SpeedBoostRoutine(float multiplier, float duration)
     {
         player.currentSpeedMultiplier = multiplier;
+        currentSpeedDuration = duration; // Para seguimiento opcional en Update
+
+        // Opcional: Llama a UIManager para mostrar que el boost está activo
+        // UIManager.Instance.ShowPowerUpStatus("VELOCIDAD", duration); 
+
         yield return new WaitForSeconds(duration);
+
         player.currentSpeedMultiplier = 1f;
+        currentSpeedDuration = 0f;
         speedCoroutine = null;
+
+        // Opcional: Llama a UIManager para limpiar el boost si se mostró
+        // UIManager.Instance.ClearPowerUpStatus();
     }
 
     public void ActivateMagnet(float radius, float duration)
@@ -137,24 +164,48 @@ public class PowerUpEffectController : MonoBehaviour
 
     private IEnumerator MagnetRoutine(float radius, float duration)
     {
+        // Lógica de Activación
         isMagnetActive = true;
-
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.radius = radius;
             magnetAttractionCollider.enabled = true;
         }
 
-        yield return new WaitForSeconds(duration);
+        // Control de Tiempo y Actualización de UI (¡LA CORRECCIÓN!)
+        float timer = duration;
+        string powerUpName = "IMÁN";
 
-        // Al finalizar, limpiamos la lista de objetos y desactivamos.
+        while (timer > 0)
+        {
+            timer -= Time.deltaTime;
+
+            // ➡️ Llama al UIManager para actualizar el tiempo restante CADA FRAME
+            if (UIManager.Instance != null)
+            {
+                // Solo llamamos a ShowPowerUpStatus, UIManager maneja el formato ":0.0s"
+                UIManager.Instance.ShowPowerUpStatus(powerUpName, timer);
+            }
+
+            yield return null; // Espera al siguiente frame
+        }
+
+        // Lógica de Desactivación (Cuando timer <= 0)
+
+        // Limpia el estado en el UIManager
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ClearPowerUpStatus();
+        }
+
         attractableObjects.Clear();
-        
         isMagnetActive = false;
+
         if (magnetAttractionCollider != null)
         {
             magnetAttractionCollider.enabled = false;
         }
+
         magnetCoroutine = null;
     }
 }
