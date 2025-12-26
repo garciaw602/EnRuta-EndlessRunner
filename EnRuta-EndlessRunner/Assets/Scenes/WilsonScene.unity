@@ -1352,7 +1352,6 @@ MonoBehaviour:
   jumpForce: 10
   laneDistance: 4
   currentSpeedMultiplier: 1
-  audioController: {fileID: 0}
   totalGarbage: 0
   plasticCount: 0
   glassCount: 0
