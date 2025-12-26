@@ -201,7 +201,6 @@ MonoBehaviour:
   jumpForce: 80
   laneDistance: 3
   currentSpeedMultiplier: 1
-  audioController: {fileID: 0}
   totalGarbage: 0
   plasticCount: 0
   glassCount: 0
@@ -272,7 +271,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: 6989825048239476420}
   jumpSound: {fileID: 8300000, guid: 561ce5f72e966bc49895a465642bf7ab, type: 3}
-  slideSound: {fileID: 0}
+  slideSound: {fileID: 8300000, guid: 4f9318e4294779842a1b61cbfe2c1356, type: 3}
   runLoopSound: {fileID: 0}
   crashSound: {fileID: 0}
   dieSound: {fileID: 0}
@@ -423,6 +422,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 400010, guid: d0223f77114284b47a0e8b317e71e4dc, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5437563372643432907, guid: d0223f77114284b47a0e8b317e71e4dc, type: 3}
+      propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
