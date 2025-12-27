@@ -31,6 +31,11 @@ public class PlayerController : MonoBehaviour
     private bool isGrounded = true;
     private int currentLane = 1; // 0: Izq, 1: Centro, 2: Der
     private bool isDead = false;
+    
+    // Estados de salto/caída
+    private bool isJumping = false;
+    private bool isFalling = false;
+    private float fallThreshold = -0.5f;
 
     void Start()
     {
@@ -104,6 +109,9 @@ public class PlayerController : MonoBehaviour
         {
             MoveLane(-1);
         }
+
+        // 4. Monitorear fases de salto/caída
+        UpdateJumpAnimationState();
     }
 
     void FixedUpdate()
@@ -118,13 +126,45 @@ public class PlayerController : MonoBehaviour
         float finalSpeed = baseSpeed * currentSpeedMultiplier;
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y, finalSpeed);
 
-        // 2. Movimiento Lateral (Eje X)
-        float targetX = (currentLane - 1) * laneDistance;
-        Vector3 targetPosition = new Vector3(targetX, transform.position.y, transform.position.z);
+        // 2. Movimiento Lateral (Eje X) - SOLO cuando está en el suelo
+        if (isGrounded)
+        {
+            float targetX = (currentLane - 1) * laneDistance;
+            Vector3 targetPosition = new Vector3(targetX, transform.position.y, transform.position.z);
 
-        Vector3 newPosition = Vector3.Lerp(rb.position, targetPosition, Time.fixedDeltaTime * lateralSpeed);
+            Vector3 newPosition = Vector3.Lerp(rb.position, targetPosition, Time.fixedDeltaTime * lateralSpeed);
 
-        rb.MovePosition(new Vector3(newPosition.x, rb.position.y, rb.position.z));
+            rb.MovePosition(new Vector3(newPosition.x, rb.position.y, rb.position.z));
+        }
+    }
+
+    // --- MONITOREO DE ANIMACIONES DE SALTO/CAÍDA ---
+    private void UpdateJumpAnimationState()
+    {
+        // Si está en el suelo, reset de estados
+        if (isGrounded)
+        {
+            isJumping = false;
+            isFalling = false;
+            return;
+        }
+
+        float currentYVelocity = rb.linearVelocity.y;
+
+        // Fase 1: Saltando (velocidad Y positiva)
+        if (currentYVelocity > 0 && !isJumping)
+        {
+            isJumping = true;
+            isFalling = false;
+            Debug.Log("[ANIM] Ya saltando - animación IsJump activa");
+        }
+        // Fase 2: Cayendo (velocidad Y negativa)
+        else if (currentYVelocity < fallThreshold && isJumping && !isFalling)
+        {
+            isFalling = true;
+            Debug.Log("[ANIM] Trigger: IsFalling");
+            anim.SetTrigger("IsFalling");
+        }
     }
 
     // --- MANEJO DE COLISIONES (GAME OVER / SALTO) ---
@@ -132,8 +172,16 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Ground"))
         {
+            // Retornar a estado Running directamente (sin Landing)
+            if (!isGrounded && (isJumping || isFalling))
+            {
+                Debug.Log("[ANIM] Aterrizando - volviendo a IsRunning");
+                isJumping = false;
+                isFalling = false;
+                anim.SetBool("IsRunning", true);
+            }
+
             isGrounded = true; // Permite saltar de nuevo
-            anim.SetTrigger("IsRun");
         }
 
         // Si choca con un Rigidbody (sólido)
@@ -188,6 +236,10 @@ public class PlayerController : MonoBehaviour
     {
         rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
         isGrounded = false;
+        isJumping = true;
+        isFalling = false;
+        
+        Debug.Log("[JUMP] Saltando - Trigger: IsJump");
         anim.SetTrigger("IsJump");
         anim.SetBool("IsRunning", false);
     }

@@ -1045,6 +1045,10 @@ PrefabInstance:
       value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 1230378360843867018, guid: 005cf701ea2b09849b88b4284c692cf9, type: 3}
+      propertyPath: collectibleY
+      value: 1.76
+      objectReference: {fileID: 0}
+    - target: {fileID: 1230378360843867018, guid: 005cf701ea2b09849b88b4284c692cf9, type: 3}
       propertyPath: powerUpChance
       value: 0.11
       objectReference: {fileID: 0}
@@ -1872,6 +1876,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1296441064621722377, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 1485392011779246684, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1920,6 +1928,10 @@ PrefabInstance:
       propertyPath: slideSound
       value: 
       objectReference: {fileID: 8300000, guid: 4f9318e4294779842a1b61cbfe2c1356, type: 3}
+    - target: {fileID: 2313654790798249082, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: runLoopSound
+      value: 
+      objectReference: {fileID: 8300000, guid: 9de5cd93c9f615b48bbb98f9098413cb, type: 3}
     - target: {fileID: 7935977651227763430, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
       propertyPath: m_IsActive
       value: 0

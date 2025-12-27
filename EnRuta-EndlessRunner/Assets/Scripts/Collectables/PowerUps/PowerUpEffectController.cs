@@ -68,7 +68,7 @@ public class PowerUpEffectController : MonoBehaviour
                 continue;
             }
 
-            // Mover el objeto hacia la posición del jugador
+            // Mover el objeto hacia la posición del jugador (incluyendo X)
             Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
 
             // Mover hacia el jugador
@@ -85,6 +85,12 @@ public class PowerUpEffectController : MonoBehaviour
                 Collectable collectable = obj.GetComponent<Collectable>();
                 if (collectable != null)
                 {
+                    // Reproduce el sonido de recolección
+                    if (AudioManager.Instance != null && collectable.collectionSound != null)
+                    {
+                        AudioManager.Instance.PlaySFX(collectable.collectionSound);
+                    }
+
                     player.ProcessCollectable(collectable.data);
                 }
                 Destroy(obj);
@@ -198,7 +204,7 @@ public class PowerUpEffectController : MonoBehaviour
             UIManager.Instance.ClearPowerUpStatus();
         }
 
-        attractableObjects.Clear();
+        // Desactiva el imán primero (detiene la atracción)
         isMagnetActive = false;
 
         if (magnetAttractionCollider != null)
@@ -206,6 +212,59 @@ public class PowerUpEffectController : MonoBehaviour
             magnetAttractionCollider.enabled = false;
         }
 
+        // Ahora continúa con el desplazamiento suave de los objetos que aún se están moviendo
+        // hacia los carriles correctos mientras se recolectan
+        float smoothDuration = 0.5f; // Tiempo para que terminen de moverse
+        float elapsed = 0f;
+
+        while (elapsed < smoothDuration && attractableObjects.Count > 0)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / smoothDuration;
+
+            // Continúa atrayendo objetos pero suavemente
+            for (int i = attractableObjects.Count - 1; i >= 0; i--)
+            {
+                GameObject obj = attractableObjects[i];
+
+                if (obj == null)
+                {
+                    attractableObjects.RemoveAt(i);
+                    continue;
+                }
+
+                Vector3 targetPosition = transform.position + Vector3.up * collectionHeightOffset;
+
+                // Movimiento más suave durante el fade-out del imán
+                obj.transform.position = Vector3.Lerp(
+                    obj.transform.position,
+                    targetPosition,
+                    Time.deltaTime * (attractionSpeed * 0.3f)
+                );
+
+                float distance = Vector3.Distance(obj.transform.position, targetPosition);
+                if (distance < 0.5f)
+                {
+                    Collectable collectable = obj.GetComponent<Collectable>();
+                    if (collectable != null)
+                    {
+                        // Reproduce el sonido de recolección
+                        if (AudioManager.Instance != null && collectable.collectionSound != null)
+                        {
+                            AudioManager.Instance.PlaySFX(collectable.collectionSound);
+                        }
+
+                        player.ProcessCollectable(collectable.data);
+                    }
+                    Destroy(obj);
+                    attractableObjects.RemoveAt(i);
+                }
+            }
+
+            yield return null;
+        }
+
+        attractableObjects.Clear();
         magnetCoroutine = null;
     }
 }
