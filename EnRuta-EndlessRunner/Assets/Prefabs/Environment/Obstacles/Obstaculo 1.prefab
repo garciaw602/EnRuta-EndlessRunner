@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 3852528840820738498}
   - component: {fileID: 1726352531002074832}
   - component: {fileID: 8501068524458398956}
+  - component: {fileID: 2052031619383164105}
   m_Layer: 0
   m_Name: Obstaculo 1
   m_TagString: Obstaculo
@@ -29,7 +30,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 4.73, z: 0}
-  m_LocalScale: {x: 4.82, y: 2.670286, z: 36.312103}
+  m_LocalScale: {x: 4.48, y: 2.4819255, z: 33.750668}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6834889700569149158}
@@ -108,8 +109,35 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 0.86, z: 1.05}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.88, y: 0.71, z: 0.84}
+  m_Center: {x: 0, y: -0.08, z: 0}
+--- !u!54 &2052031619383164105
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 168633001861420986}
+  serializedVersion: 4
+  m_Mass: 100000000
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 112
+  m_CollisionDetection: 0
 --- !u!1 &5192326656683281115
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,8 +166,8 @@ Transform:
   m_GameObject: {fileID: 5192326656683281115}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.28, z: -0.0007019341}
-  m_LocalScale: {x: 1.07, y: 0.17, z: 1.05}
+  m_LocalPosition: {x: 0, y: 0.21, z: -0.0007019341}
+  m_LocalScale: {x: 0.81, y: 0.17, z: 0.84}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 4135241920702964784}
@@ -228,15 +256,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 45f2a53aea128364bb2627cc28699160, type: 3}
       propertyPath: m_LocalScale.x
-      value: 7.9
+      value: 6.3199997
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 45f2a53aea128364bb2627cc28699160, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1.0486308
+      value: 0.83890456
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 45f2a53aea128364bb2627cc28699160, type: 3}
       propertyPath: m_LocalScale.z
-      value: 14.259896
+      value: 11.407916
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 45f2a53aea128364bb2627cc28699160, type: 3}
       propertyPath: m_LocalPosition.x

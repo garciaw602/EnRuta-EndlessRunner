@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     public float lateralSpeed = 5f;
     public float jumpForce = 10f;
     public float laneDistance = 4f;
+    public float gravityMultiplier = 3f; // Multiplicador de gravedad para caídas rápidas
 
     // currentSpeedMultiplier se mantiene aquí para ser modificado por PowerUpEffectController.
     [HideInInspector] public float currentSpeedMultiplier = 1f;
@@ -48,40 +49,28 @@ public class PlayerController : MonoBehaviour
         slideHandler = GetComponent<SlideHandler>();
         powerUpEffects = GetComponent<PowerUpEffectController>();
 
-        // 3. Verificaciones CRÍTICAS (Asegura que el movimiento/animación funcionen)
+        // 3. Verificaciones CRÍTICAS
         if (rb == null || playerCollider == null || anim == null)
         {
-            Debug.LogError("FATAL: Componente Rigidbody, CapsuleCollider o Animator FALTANTE. El movimiento NO funcionará.");
-            enabled = false; // Desactiva el script si falta un componente crítico
+            Debug.LogError("FATAL: Componente Rigidbody, CapsuleCollider o Animator FALTANTE.");
+            enabled = false; 
             return;
         }
 
-        // 4. Inicialización del Slide Handler (Crucial para el deslizamiento y salto)
+        // 4. Inicialización del Slide Handler
         if (slideHandler != null)
         {
-            // Pasa las referencias y dimensiones originales para que el handler pueda manipular el collider
             float originalHeight = playerCollider.height;
             Vector3 originalCenter = playerCollider.center;
             slideHandler.Initialize(playerCollider, anim, originalHeight, originalCenter);
         }
-        else
-        {
-            // Esto es lo que causaba el fallo de Salto/Deslizamiento
-            Debug.LogError("FATAL: SlideHandler.cs no está adjunto. Deslizamiento y Salto fallarán.");
-        }
-
-        if (powerUpEffects == null)
-        {
-            Debug.LogWarning("Advertencia: PowerUpEffectController.cs no está adjunto. Los power-ups no funcionarán.");
-        }
-
-        anim.SetBool("IsRunning", true);
+        
+        anim.SetTrigger("IsRun");
     }
 
     void Update()
     {
         bool canMove = !isDead && (GameManager.Instance != null && !GameManager.Instance.IsGameOver);
-        // Usa la propiedad IsSliding del SlideHandler
         bool canJumpOrSlide = isGrounded && slideHandler != null && !slideHandler.IsSliding;
 
         if (!canMove) return;
@@ -93,11 +82,11 @@ public class PlayerController : MonoBehaviour
             Jump();
         }
 
-        // 2. Lógica de Deslizamiento (DELEGADA)
+        // 2. Lógica de Deslizamiento
         if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
             && canJumpOrSlide)
         {
-            slideHandler.StartSlide(); // DELEGA la lógica
+            slideHandler.StartSlide(); 
         }
 
         // 3. Lógica de Movimiento Lateral (Input)
@@ -122,26 +111,26 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // --- MULTIPLICADOR DE GRAVEDAD ---
+        if (!isGrounded)
+        {
+            rb.AddForce(Vector3.down * (Physics.gravity.magnitude * gravityMultiplier * rb.mass), ForceMode.Force);
+        }
+
         // 1. Avance Constante (Eje Z)
         float finalSpeed = baseSpeed * currentSpeedMultiplier;
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, rb.linearVelocity.y, finalSpeed);
 
-        // 2. Movimiento Lateral (Eje X) - SOLO cuando está en el suelo
-        if (isGrounded)
-        {
-            float targetX = (currentLane - 1) * laneDistance;
-            Vector3 targetPosition = new Vector3(targetX, transform.position.y, transform.position.z);
-
-            Vector3 newPosition = Vector3.Lerp(rb.position, targetPosition, Time.fixedDeltaTime * lateralSpeed);
-
-            rb.MovePosition(new Vector3(newPosition.x, rb.position.y, rb.position.z));
-        }
+        // 2. Movimiento Lateral (Eje X) - FUNCIONA EN EL AIRE
+        float targetX = (currentLane - 1) * laneDistance;
+        Vector3 currentPos = rb.position;
+        float newX = Mathf.Lerp(currentPos.x, targetX, Time.fixedDeltaTime * lateralSpeed);
+        
+        rb.MovePosition(new Vector3(newX, rb.position.y, rb.position.z));
     }
 
-    // --- MONITOREO DE ANIMACIONES DE SALTO/CAÍDA ---
     private void UpdateJumpAnimationState()
     {
-        // Si está en el suelo, reset de estados
         if (isGrounded)
         {
             isJumping = false;
@@ -151,85 +140,72 @@ public class PlayerController : MonoBehaviour
 
         float currentYVelocity = rb.linearVelocity.y;
 
-        // Fase 1: Saltando (velocidad Y positiva)
         if (currentYVelocity > 0 && !isJumping)
         {
             isJumping = true;
             isFalling = false;
-            Debug.Log("[ANIM] Ya saltando - animación IsJump activa");
         }
-        // Fase 2: Cayendo (velocidad Y negativa)
         else if (currentYVelocity < fallThreshold && isJumping && !isFalling)
         {
             isFalling = true;
-            Debug.Log("[ANIM] Trigger: IsFalling");
             anim.SetTrigger("IsFalling");
         }
     }
 
-    // --- MANEJO DE COLISIONES (GAME OVER / SALTO) ---
     void OnCollisionEnter(Collision collision)
     {
+        // PRIORIDAD 1: Suelo (incluyendo techos de obstáculos etiquetados como Ground)
         if (collision.gameObject.CompareTag("Ground"))
         {
-            // Retornar a estado Running directamente (sin Landing)
             if (!isGrounded && (isJumping || isFalling))
             {
-                Debug.Log("[ANIM] Aterrizando - volviendo a IsRunning");
                 isJumping = false;
                 isFalling = false;
-                anim.SetBool("IsRunning", true);
+                anim.SetTrigger("IsRun");
             }
-
-            isGrounded = true; // Permite saltar de nuevo
+            isGrounded = true; 
+            return; // IMPORTANTE: Salimos de la función para no evaluar la muerte si caímos en algo seguro
         }
 
-        // Si choca con un Rigidbody (sólido)
+        // PRIORIDAD 2: Obstáculos (Solo si no estamos tocando Ground al mismo tiempo)
         if (collision.gameObject.CompareTag("Obstaculo") && !isDead)
         {
             Die();
         }
     }
 
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = false;
+        }
+    }
+
     void OnTriggerEnter(Collider other)
     {
         Collectable item = other.GetComponent<Collectable>();
-
         if (item != null)
         {
-            // DELEGACIÓN: Llamamos al ítem para que GESTIONE la recolección y la destrucción.
-            // NO TOCAMOS NINGÚN CÓDIGO DE ATRACCIÓN AQUÍ.
             item.AttemptCollection(this); 
         }
     }
 
-    // --- LÓGICA DE COLECCIÓN ---
     public void ProcessCollectable(CollectableData data)
     {
-        // 1. Manejo de Power-Ups
         if (data.type == CollectableType.PowerUp)
         {
             if (data.powerUpEffect != null && powerUpEffects != null)
             {
-                // Aplica el efecto del SO al controlador
-                // NOTA: Esto asume que ApplyEffect ya pasa los argumentos necesarios (como la duración)
                 data.powerUpEffect.ApplyEffect(powerUpEffects, data.powerUpEffect.duration);
             }
             return;
         }
 
-        // 2. Manejo de Basura/Reciclables
         if (ScoreManager.Instance != null)
         {
             ScoreManager.Instance.AddToInventory(data.collectableName, data.baseValue, data.type);
         }
-    }
-
-    private void ProcessRecyclable(string name, int value)
-    {
-        if (name.Contains("Plástico")) plasticCount += value;
-        else if (name.Contains("Vidrio")) glassCount += value;
-        else if (name.Contains("Cartón")) cardboardCount += value;
     }
 
     private void Jump()
@@ -238,10 +214,7 @@ public class PlayerController : MonoBehaviour
         isGrounded = false;
         isJumping = true;
         isFalling = false;
-        
-        Debug.Log("[JUMP] Saltando - Trigger: IsJump");
         anim.SetTrigger("IsJump");
-        anim.SetBool("IsRunning", false);
     }
 
     private void MoveLane(int direction)
@@ -253,22 +226,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // --- LÓGICA DE MUERTE (TAREA 1.2) ---
     public void Die()
     {
         if (isDead) return;
         isDead = true;
-
-        // 1. Inicia la animación de muerte (se ejecuta en el próximo frame de Update)
         anim.SetTrigger("Die");
-
-        // 2. Llama al GameManager para que maneje la pausa y los eventos
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GameOver();
         }
-
-        Debug.Log("¡GAME OVER! - Evento Global Emitido por Player.");
     }
-    // --- FIN DE LA CLASE ---
 }

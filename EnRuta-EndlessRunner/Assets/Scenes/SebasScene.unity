@@ -885,6 +885,11 @@ MonoBehaviour:
   m_LightCookieSize: {x: 1, y: 1}
   m_LightCookieOffset: {x: 0, y: 0}
   m_SoftShadowQuality: 1
+--- !u!4 &416725553 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6675890669519247707, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+  m_PrefabInstance: {fileID: 6373027049096361291}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &632563728
 GameObject:
   m_ObjectHideFlags: 0
@@ -1353,8 +1358,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseSpeed: 10
   lateralSpeed: 5
-  jumpForce: 10
   laneDistance: 4
+  jumpForce: 10
+  gravityMultiplier: 3
   currentSpeedMultiplier: 1
   totalGarbage: 0
   plasticCount: 0
@@ -1387,6 +1393,11 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 80
   m_CollisionDetection: 0
+--- !u!4 &1315861640 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5213365033286954237, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+  m_PrefabInstance: {fileID: 6373027049096361291}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1418576526 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7818353660846005112, guid: 4f52c91ea24148e47ae4b90f92154b15, type: 3}
@@ -1879,6 +1890,32 @@ PrefabInstance:
     - target: {fileID: 1296441064621722377, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
       propertyPath: m_Avatar
       value: 
+      objectReference: {fileID: 9000000, guid: 0d8b971390831f542aeab6dff5a714b2, type: 3}
+    - target: {fileID: 1296441064621722377, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_WarningMessage
+      value: "\nBinding warning: Some generic clip(s) animate transforms that are
+        already bound by a Humanoid avatar. These transforms can only be changed
+        by Humanoid clips.\n\tTransform 'mixamorig:Hips'\n\tTransform 'mixamorig:LeftFoot'\n\tTransform
+        'mixamorig:LeftHandThumb2'\n\tTransform 'mixamorig:LeftHandIndex1'\n\tTransform
+        'mixamorig:LeftHandPinky2'\n\tTransform 'mixamorig:RightHandRing2'\n\tTransform
+        'mixamorig:Spine1'\n\tTransform 'mixamorig:LeftToeBase'\n\tTransform 'mixamorig:LeftHandThumb3'\n\tTransform
+        'mixamorig:RightArm'\n\tand more ...\n\tFrom animation clip 'Hit'"
+      objectReference: {fileID: 0}
+    - target: {fileID: 1296441064621722377, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1485392011779246684, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1485392011779246684, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1485392011779246684, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 1485392011779246684, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1932,9 +1969,29 @@ PrefabInstance:
       propertyPath: runLoopSound
       value: 
       objectReference: {fileID: 8300000, guid: 9de5cd93c9f615b48bbb98f9098413cb, type: 3}
+    - target: {fileID: 5493081157138235198, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: jumpForce
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 5493081157138235198, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: playerHips
+      value: 
+      objectReference: {fileID: 416725553}
+    - target: {fileID: 5493081157138235198, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: characterMesh
+      value: 
+      objectReference: {fileID: 1315861640}
+    - target: {fileID: 5493081157138235198, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: gravityMultiplier
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7935977651227763430, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8809566245042285233, guid: 3c02328349f99bb4bbc0e6e666e244f3, type: 3}
+      propertyPath: m_CollisionDetection
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
