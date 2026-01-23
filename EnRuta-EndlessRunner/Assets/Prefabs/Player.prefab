@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 0d8b971390831f542aeab6dff5a714b2, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2.5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0d8b971390831f542aeab6dff5a714b2, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2.5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0d8b971390831f542aeab6dff5a714b2, type: 3}
       propertyPath: m_LocalScale.z
-      value: 2.5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0d8b971390831f542aeab6dff5a714b2, type: 3}
       propertyPath: m_LocalPosition.x
@@ -139,7 +139,7 @@ Rigidbody:
   m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 112
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
 --- !u!136 &127889813223372912
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -198,8 +198,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseSpeed: 15
   lateralSpeed: 5
-  jumpForce: 80
+  jumpForce: 200
   laneDistance: 3
+  gravityMultiplier: 1
   currentSpeedMultiplier: 1
   totalGarbage: 0
   plasticCount: 0
@@ -244,7 +245,7 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2294298715684229350}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: 0d8b971390831f542aeab6dff5a714b2, type: 3}
   m_Controller: {fileID: 9100000, guid: 70d35717492a339448630c963db29d63, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
@@ -252,7 +253,13 @@ Animator:
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
   m_AnimatePhysics: 0
-  m_WarningMessage: 
+  m_WarningMessage: "\nBinding warning: Some generic clip(s) animate transforms that
+    are already bound by a Humanoid avatar. These transforms can only be changed
+    by Humanoid clips.\n\tTransform 'mixamorig:Hips'\n\tTransform 'mixamorig:LeftFoot'\n\tTransform
+    'mixamorig:LeftHandThumb2'\n\tTransform 'mixamorig:LeftHandIndex1'\n\tTransform
+    'mixamorig:LeftHandPinky2'\n\tTransform 'mixamorig:RightHandRing2'\n\tTransform
+    'mixamorig:Spine1'\n\tTransform 'mixamorig:LeftToeBase'\n\tTransform 'mixamorig:LeftHandThumb3'\n\tTransform
+    'mixamorig:RightArm'\n\tand more ...\n\tFrom animation clip 'Hit'"
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
@@ -272,7 +279,7 @@ MonoBehaviour:
   audioSource: {fileID: 6989825048239476420}
   jumpSound: {fileID: 8300000, guid: 561ce5f72e966bc49895a465642bf7ab, type: 3}
   slideSound: {fileID: 8300000, guid: 4f9318e4294779842a1b61cbfe2c1356, type: 3}
-  runLoopSound: {fileID: 0}
+  runLoopSound: {fileID: 8300000, guid: 9de5cd93c9f615b48bbb98f9098413cb, type: 3}
   crashSound: {fileID: 0}
   dieSound: {fileID: 0}
 --- !u!82 &6989825048239476420

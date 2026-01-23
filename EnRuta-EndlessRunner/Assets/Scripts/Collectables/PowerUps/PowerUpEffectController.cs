@@ -107,17 +107,24 @@ public class PowerUpEffectController : MonoBehaviour
         // El OnTriggerEnter es llamado por el magnetAttractionCollider.
         if (!isMagnetActive || other.gameObject == gameObject) return;
 
+        // PRIMERO: Solo procesar objetos que tengan el componente Collectable
+        // Esto garantiza que SOLO la basura/reciclaje sea atraída
         Collectable collectable = other.GetComponent<Collectable>();
-
         if (collectable == null || collectable.data == null) return;
 
-        // Descartar PowerUps (solo atrae basura)
+        // SEGUNDO: Rechazar explícitamente PowerUps y obstáculos
         if (collectable.data.type == CollectableType.PowerUp)
         {
-            return;
+            return; // PowerUps no deben ser atraídos
         }
 
-        // Si es basura, lo añadimos para ser atraído por Update.
+        // TERCERO: Seguridad adicional - rechazar si tiene tag de obstáculo
+        if (other.CompareTag("Obstaculo") || other.CompareTag("Ground"))
+        {
+            return; // No atraer obstáculos ni el suelo
+        }
+
+        // Si es basura válida (GeneralGarbage o Recyclable), lo añadimos para ser atraído
         if (!attractableObjects.Contains(other.gameObject))
         {
             attractableObjects.Add(other.gameObject);

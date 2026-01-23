@@ -1,4 +1,4 @@
-﻿﻿using UnityEngine;
+﻿﻿﻿﻿using UnityEngine;
 using System.Collections;
 using System;
 
@@ -36,6 +36,7 @@ public class PlayerController : MonoBehaviour
     // Estados de salto/caída
     private bool isJumping = false;
     private bool isFalling = false;
+    private bool isLanding = false;
     private float fallThreshold = -0.5f;
 
     void Start()
@@ -131,6 +132,13 @@ public class PlayerController : MonoBehaviour
 
     private void UpdateJumpAnimationState()
     {
+        // Si aterrizamos, resetear IsLanding después de este frame
+        if (isGrounded && isLanding)
+        {
+            isLanding = false;
+            anim.SetTrigger("IsRun");
+        }
+
         if (isGrounded)
         {
             isJumping = false;
@@ -144,6 +152,7 @@ public class PlayerController : MonoBehaviour
         {
             isJumping = true;
             isFalling = false;
+            anim.SetTrigger("IsJump");
         }
         else if (currentYVelocity < fallThreshold && isJumping && !isFalling)
         {
@@ -161,7 +170,8 @@ public class PlayerController : MonoBehaviour
             {
                 isJumping = false;
                 isFalling = false;
-                anim.SetTrigger("IsRun");
+                isLanding = true;
+                anim.SetTrigger("IsLanding");
             }
             isGrounded = true; 
             return; // IMPORTANTE: Salimos de la función para no evaluar la muerte si caímos en algo seguro

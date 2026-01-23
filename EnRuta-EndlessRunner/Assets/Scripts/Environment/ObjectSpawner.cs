@@ -31,6 +31,14 @@ public class ObjectSpawner : MonoBehaviour
     public float obstacleHeight = 2.0f; // Altura típica de los obstáculos
     public float collectibleAboveObstacle = 1.2f; // Distancia encima del techo del obstáculo
 
+    [Header("Distancia entre Obstáculos")]
+    public float minDistanceBetweenObstacles = 6f; // Distancia mínima entre obstáculos (en unidades Z)
+
+    [Header("Rotación de Objetos")]
+    public Vector3 obstacleRotation = new Vector3(0, 0, 0); // Rotación para obstáculos (carros)
+    public Vector3 collectibleRotation = new Vector3(0, 0, 0); // Rotación para coleccionables
+    public Vector3 powerUpRotation = new Vector3(0, 0, 0); // Rotación para power-ups
+
     public void PopulateSegment(EnvironmentSegment segment)
     {
         segment.ClearObjects();
@@ -46,7 +54,10 @@ public class ObjectSpawner : MonoBehaviour
         // Nueva regla: solo bloquea objetos demasiado cerca del jugador
         float minZAllowed = player.position.z + minSafeDistanceFromPlayer;
 
-        // Diccionario para almacenar si hay obstáculos en cada carril por posición Z
+        // Lista para almacenar TODAS las posiciones Z donde hay obstáculos (cualquier carril)
+        List<float> allObstaclePositions = new List<float>();
+        
+        // Diccionario para almacenar obstáculos por carril
         Dictionary<int, HashSet<float>> obstaclesByLane = new Dictionary<int, HashSet<float>>();
         for (int i = 0; i < segment.lanePoints.Length; i++)
         {
@@ -73,14 +84,19 @@ public class ObjectSpawner : MonoBehaviour
 
                 if (r < obstacleChance)
                 {
-                    Vector3 pos = new Vector3(segment.lanePoints[i].position.x, obstacleY, z);
-                    SpawnOne(segment, obstaclePrefabs, pos);
-                    obstaclesByLane[i].Add(z); // Registrar que hay obstáculo en esta posición
+                    // Verificar si hay un obstáculo demasiado cerca en otras posiciones
+                    if (CanSpawnObstacle(z, allObstaclePositions))
+                    {
+                        Vector3 pos = new Vector3(segment.lanePoints[i].position.x, obstacleY, z);
+                        SpawnOne(segment, obstaclePrefabs, pos, obstacleRotation);
+                        obstaclesByLane[i].Add(z); // Registrar que hay obstáculo en esta posición
+                        allObstaclePositions.Add(z); // Registrar posición global
+                    }
                 }
                 else if (r < obstacleChance + powerUpChance)
                 {
                     Vector3 pos = new Vector3(segment.lanePoints[i].position.x, collectibleY, z);
-                    SpawnOne(segment, powerUpPrefabs, pos);
+                    SpawnOne(segment, powerUpPrefabs, pos, powerUpRotation);
                 }
             }
         }
@@ -103,6 +119,18 @@ public class ObjectSpawner : MonoBehaviour
         }
     }
 
+    bool CanSpawnObstacle(float zPosition, List<float> existingObstacles)
+    {
+        foreach (float existingZ in existingObstacles)
+        {
+            if (Mathf.Abs(zPosition - existingZ) < minDistanceBetweenObstacles)
+            {
+                return false; // Hay un obstáculo demasiado cerca
+            }
+        }
+        return true; // Puedo spawnear
+    }
+
     void SpawnCollectibleSequence(EnvironmentSegment s, int lane, float startZ, HashSet<float> obstaclesInLane)
     {
         int count = Random.Range(minCollectibles, maxCollectibles + 1);
@@ -122,15 +150,16 @@ public class ObjectSpawner : MonoBehaviour
             }
             
             Vector3 pos = new Vector3(s.lanePoints[lane].position.x, collectibleHeight, z);
-            SpawnOne(s, new GameObject[] { prefab }, pos);
+            SpawnOne(s, new GameObject[] { prefab }, pos, collectibleRotation);
         }
     }
 
-    void SpawnOne(EnvironmentSegment s, GameObject[] pool, Vector3 pos)
+    void SpawnOne(EnvironmentSegment s, GameObject[] pool, Vector3 pos, Vector3 rotation)
     {
         if (pool == null || pool.Length == 0) return;
 
         GameObject prefab = pool[Random.Range(0, pool.Length)];
-        Instantiate(prefab, pos, Quaternion.identity, s.objectsRoot);
+        Quaternion finalRotation = Quaternion.Euler(rotation);
+        Instantiate(prefab, pos, finalRotation, s.objectsRoot);
     }
 }
