@@ -70,6 +70,14 @@ public class EnvironmentManager : MonoBehaviour
         Vector3 pos = new Vector3(0f, 0f, spawnZ);
         EnvironmentSegment inst = Instantiate(prefab, pos, Quaternion.identity);
 
+        // Resetear la posición Y de todos los objetos Ground del segmento para que estén siempre a Y=0
+        Terrain[] terrains = inst.GetComponentsInChildren<Terrain>();
+        foreach (Terrain terrain in terrains)
+        {
+            Vector3 terrainPos = terrain.gameObject.transform.localPosition;
+            terrain.gameObject.transform.localPosition = new Vector3(terrainPos.x, 0f, terrainPos.z);
+        }
+
         objectSpawner.PopulateSegment(inst);
 
         float len = inst.GetSegmentLength();

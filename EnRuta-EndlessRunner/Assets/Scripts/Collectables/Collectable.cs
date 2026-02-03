@@ -1,55 +1,78 @@
-﻿// Collectable.cs
-using UnityEngine;
+﻿using UnityEngine;
 
-// Asegurarse de que el script Collectable.cs esté en el objeto con el Collider de la Basura/PowerUp
 [RequireComponent(typeof(Collider))]
 public class Collectable : MonoBehaviour
 {
-    [Tooltip("Arrastra aquí el archivo CollectableData (.asset)")]
+    // Datos definidos por el Scriptable Object (SO)
     public CollectableData data;
 
+    // ➡️ AÑADIDO: Clip de audio individual para este item.
+    [Header("Audio")]
+    [Tooltip("El sonido que se reproducirá al recolectar este objeto/power-up.")]
+    public AudioClip collectionSound;
+
+    // Referencia al controlador de efectos del jugador para la limpieza del imán.
     private PowerUpEffectController powerUpEffects;
 
     void Start()
     {
-        // ... (El código de Rigidbody y Trigger se mantiene) ...
+        if (data == null)
+        {
+            Debug.LogError($"Collectable en {gameObject.name} no tiene asignado CollectableData. ¡Esto causará fallos!");
+        }
+
+        // Búsqueda de la referencia del PlayerController
+        GameObject playerGO = GameObject.FindWithTag("Player");
+        if (playerGO != null)
+        {
+            powerUpEffects = playerGO.GetComponent<PowerUpEffectController>();
+        }
+        else
+        {
+            Debug.LogError("Collectable no encontró el objeto 'Player'. ¿Tiene la etiqueta 'Player'?");
+        }
+
+        // Asegura que el Collider sea Trigger para que el jugador pueda atravesarlo y recolectarlo.
+        Collider col = GetComponent<Collider>();
+        if (col != null)
+        {
+            col.isTrigger = true;
+        }
     }
 
     /// <summary>
-    /// Maneja la recolección por contacto (cuerpo del jugador o ítem atraído).
+    /// Intenta recolectar el objeto, llamado por el PlayerController al chocar con su Collider de cuerpo.
     /// </summary>
-    private void OnTriggerEnter(Collider other)
+    public void AttemptCollection(PlayerController pc)
     {
-        // 🛑 CRÍTICO: Asegura que la colisión es SOLO con el Tag "Player" (cuerpo del jugador o Magnet Hitbox si también tiene el tag).
-        if (!other.CompareTag("Player")) return;
+        if (data == null) return;
 
-        // Intentamos obtener PlayerController del objeto que colisionó o de su padre
-        PlayerController player = other.GetComponent<PlayerController>();
-        if (player == null)
-        {
-            player = other.GetComponentInParent<PlayerController>();
-        }
+        // Obtiene el estado actual del imán.
+        PowerUpEffectController pufx = pc.GetComponent<PowerUpEffectController>();
+        bool isMagnetActive = (pufx != null) ? pufx.isMagnetActive : false;
 
-        if (player != null)
+        // LÓGICA DE RECOLECCIÓN:
+        bool shouldCollect = !isMagnetActive;
+
+
+        if (shouldCollect)
         {
-            // 1. Obtener controlador de efectos para limpieza de lista
-            if (powerUpEffects == null)
+            //  LLAMADA DE AUDIO: Reproduce el sonido único de este coleccionable antes de destruirlo.
+            if (AudioManager.Instance != null)
             {
-                powerUpEffects = player.GetComponent<PowerUpEffectController>();
+                AudioManager.Instance.PlaySFX(collectionSound);
             }
 
-            // 2. Procesar la lógica (Activar PowerUp o Sumar Basura)
-            player.ProcessCollectable(data);
-
-            // 3. Limpiar la lista de atracción (si estaba siendo atraído)
+            // LIMPIEZA DE SEGURIDAD: Retira el objeto de la lista de atracción del imán (si estaba).
             if (powerUpEffects != null)
             {
-                // Usamos this.gameObject para referirnos al objeto Collectable
-                powerUpEffects.RemoveFromMagnetList(this.gameObject);
+                powerUpEffects.RemoveAttractableObject(gameObject);
             }
 
-            // 4. Destruir el objeto visual (¡Se recoge!)
-            Destroy(gameObject);
+            pc.ProcessCollectable(data); // Aplica el efecto o suma el puntaje
+            Destroy(gameObject); // Destruye el objeto recolectado
         }
+
+        // Si el imán está activo, la recolección por contacto se ignora aquí.
     }
 }
