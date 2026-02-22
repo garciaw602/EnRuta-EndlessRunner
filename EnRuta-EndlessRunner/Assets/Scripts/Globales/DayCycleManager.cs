@@ -6,6 +6,9 @@ public class DayCycleManager : MonoBehaviour
     // Duración de cada fase (Mañana, Tarde, Noche)
     // Se convierten en variables públicas para poder ajustarlas en el Inspector.
 
+    [Header("Lámparas de la Ciudad")]
+    public Light[] cityLamps;
+
     [Header("Control de Tiempos")]
     [Tooltip("Duración de la transición gradual entre fases (ej: Noche -> Mañana).")]
     public float transitionDuration = 30f;

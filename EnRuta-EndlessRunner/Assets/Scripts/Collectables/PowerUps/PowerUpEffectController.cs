@@ -11,7 +11,7 @@ public class PowerUpEffectController : MonoBehaviour
     [HideInInspector] public bool isMagnetActive = false;
 
     // Lista de objetos de BASURA que están dentro del radio del imán.
-    private List<GameObject> attractableObjects = new List<GameObject>();
+    public List<GameObject> attractableObjects = new List<GameObject>();
 
     private PlayerController player;
     private Coroutine speedCoroutine;

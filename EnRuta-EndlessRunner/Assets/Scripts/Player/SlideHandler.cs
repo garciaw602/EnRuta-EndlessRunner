@@ -42,16 +42,18 @@ public class SlideHandler : MonoBehaviour
         IsSliding = true;
         anim.SetBool("Slide", true);
 
-        // Lógica para REDUCIR el Collider
         if (playerCollider != null)
         {
             playerCollider.height = reducedColliderHeight;
-            playerCollider.center = new Vector3(originalColliderCenter.x, reducedColliderHeight / 2f, originalColliderCenter.z);
+
+            // CÁLCULO CORRECTO: 
+            // Movemos el centro hacia abajo la mitad de la diferencia de altura
+            float heightDifference = (originalColliderHeight - reducedColliderHeight) / 2f;
+            playerCollider.center = new Vector3(originalColliderCenter.x, originalColliderCenter.y - heightDifference, originalColliderCenter.z);
         }
 
         yield return new WaitForSeconds(slideDuration);
 
-        // Lógica para RESTABLECER el Collider
         if (playerCollider != null)
         {
             playerCollider.height = originalColliderHeight;
