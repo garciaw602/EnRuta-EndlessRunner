@@ -36,6 +36,8 @@ public class PlayerController : MonoBehaviour
     private bool isJumping = false;
     private bool isFalling = false;
 
+    private PlayerAudioController playerAudio;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -43,6 +45,7 @@ public class PlayerController : MonoBehaviour
         playerCollider = GetComponent<CapsuleCollider>();
         slideHandler = GetComponent<SlideHandler>();
         powerUpEffects = GetComponent<PowerUpEffectController>();
+        playerAudio = GetComponent<PlayerAudioController>();
 
         if (rb == null || playerCollider == null || anim == null)
         {
@@ -73,6 +76,7 @@ public class PlayerController : MonoBehaviour
         if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S)) && canJumpOrSlide)
         {
             slideHandler.StartSlide();
+            if (playerAudio != null) playerAudio.PlaySlide(); //
         }
 
         if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow)) MoveLane(1);
@@ -137,6 +141,7 @@ public class PlayerController : MonoBehaviour
         isFalling = false;
         anim.SetBool("IsLanding", false);
         anim.SetBool("IsFalling", false);
+        if (playerAudio != null) playerAudio.PlayJump(); //
         anim.SetTrigger("IsJump");
     }
 
@@ -167,8 +172,29 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) return;
         isDead = true;
+
+        // --- LÓGICA DE AUDIO AL MORIR ---
+        if (playerAudio != null)
+        {
+            playerAudio.StopRunLoop(); // Detiene el sonido de pasos
+            playerAudio.PlayDie();     // Suena el grito/muerte
+        }
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopBackgroundMusic(); // Detiene la música de fondo
+        }
+
+
+
+
         anim.SetTrigger("Die");
         if (GameManager.Instance != null) GameManager.Instance.GameOver();
+
+
+
+
+
     }
 
     void OnCollisionEnter(Collision collision)
@@ -178,8 +204,20 @@ public class PlayerController : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Obstacle")) Die();
+        // 1. Verificamos si es un obstáculo
+        if (other.CompareTag("Obstaculo"))
+        {
+            // 2. FILTRO DE SEGURIDAD: Solo muere si el objeto que tocó el obstáculo 
+            // es el que tiene este script (el cuerpo del Player), no sus sensores hijos.
+            // Comparamos si el 'other' entró en contacto con nuestro CapsuleCollider.
+            if (playerCollider != null && playerCollider.bounds.Intersects(other.bounds))
+            {
+                Die();
+            }
+            return; // Salimos para no procesar el resto si ya morimos
+        }
 
+        // Lógica de coleccionables se mantiene igual
         Collectable item = other.GetComponent<Collectable>();
         if (item != null) item.AttemptCollection(this);
     }
